@@ -34,7 +34,7 @@ import { handleExport } from '@/utils/exportUtils';
 // Mock Transaction Data
 const TRANSACTIONS = [
     { id: 'INV-2024-001', date: '2024-10-24 14:30', customer: 'Alex Thompson', email: 'alex@example.com', phone: '+91 98765 43210', department: 'Store', total: 4199, status: 'Paid', items: [
-        { name: 'Nexus Whey Isolate', qty: 1, price: 4199 }
+        { name: 'Flex Whey Isolate', qty: 1, price: 4199 }
     ]},
     { id: 'INV-2024-003', date: '2024-10-24 16:00', customer: 'David Garcia', email: 'david@example.com', phone: '+91 98765 43212', department: 'Store', total: 7499, status: 'Pending', items: [
         { name: 'Pro Powerlifting Belt', qty: 1, price: 7499 }

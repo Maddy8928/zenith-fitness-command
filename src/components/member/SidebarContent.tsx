@@ -75,7 +75,7 @@ export default function SidebarContent({ onItemClick, variant = 'sidebar' }: Sid
                         </div>
                         <div className="flex flex-col">
                             <span className="font-heading font-black text-base tracking-tight leading-none text-foreground dark:text-white">
-                                NEXUS<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">GYM</span>
+                                FLEX<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">GYM</span>
                             </span>
                             <span className="text-[10px] font-body text-muted-foreground uppercase tracking-widest hidden sm:block">
                                 Member Portal
@@ -91,7 +91,7 @@ export default function SidebarContent({ onItemClick, variant = 'sidebar' }: Sid
                     <div className="mb-6 flex justify-between items-center">
                         <div>
                             <span className="font-heading font-black text-lg tracking-wider text-foreground dark:text-white uppercase italic">
-                                EXPLORE <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">NEXUS</span>
+                                EXPLORE <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">FLEX</span>
                             </span>
                             <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Quick navigation links</p>
                         </div>

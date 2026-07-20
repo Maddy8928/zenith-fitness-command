@@ -39,14 +39,14 @@ export function useShiftControl(roleKey: string) {
 
     // Storage keys based on role
     const keys = useMemo(() => ({
-        status: `nexus_${roleKey}_status`,
-        shiftStart: `nexus_${roleKey}_shift_start`,
-        breakStart: `nexus_${roleKey}_break_start`,
-        sessionStart: `nexus_${roleKey}_session_start`,
-        log: `nexus_${roleKey}_activity_log`,
-        mins: `nexus_${roleKey}_mins_worked`,
-        breaks: `nexus_${roleKey}_mins_break`,
-        sessions: `nexus_${roleKey}_mins_session`
+        status: `flex_${roleKey}_status`,
+        shiftStart: `flex_${roleKey}_shift_start`,
+        breakStart: `flex_${roleKey}_break_start`,
+        sessionStart: `flex_${roleKey}_session_start`,
+        log: `flex_${roleKey}_activity_log`,
+        mins: `flex_${roleKey}_mins_worked`,
+        breaks: `flex_${roleKey}_mins_break`,
+        sessions: `flex_${roleKey}_mins_session`
     }), [roleKey]);
 
     // Load from localStorage on mount

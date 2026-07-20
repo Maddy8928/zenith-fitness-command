@@ -1,7 +1,8 @@
 "use client";
 
-import { Dumbbell, Zap, Menu } from 'lucide-react';
+import { Dumbbell, Zap, Menu, UserCheck } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
 import {
   Sheet,
@@ -25,6 +26,14 @@ const navItems = [
 ];
 
 export default function Navbar() {
+  const { user, isAuthenticated } = useAuth();
+
+  const portalHref = isAuthenticated
+    ? (user?.role === 'ADMIN' ? '/admin' : user?.role === 'TRAINER' ? '/trainer' : '/member')
+    : '/login';
+
+  const portalLabel = isAuthenticated ? 'Member Portal' : 'Member Login';
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-md bg-background/40 dark:bg-background/30 border-b border-primary/10 dark:border-primary/20">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -43,7 +52,7 @@ export default function Navbar() {
           {/* Brand Text */}
           <div className="flex flex-col">
             <span className="font-heading font-black text-lg tracking-tight leading-none text-foreground dark:text-white">
-              NEXUS<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">GYM</span>
+              FLEX<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">GYM</span>
             </span>
             <span className="text-xs font-body text-muted-foreground dark:text-slate-400 tracking-widest uppercase hidden sm:block">Elite Fitness</span>
           </div>
@@ -66,12 +75,16 @@ export default function Navbar() {
         {/* Right Section */}
         <div className="flex items-center gap-3 md:gap-4">
           {/* Member Login - Desktop */}
-          <Link href="/login" className="hidden sm:block relative group px-6 md:px-8 py-2.5 rounded-xl font-heading font-bold text-xs tracking-[0.2em] uppercase text-white bg-slate-950 dark:bg-charcoal/90 border border-white/10 hover:border-gold-glow/40 transition-all duration-500 shadow-soft hover:shadow-[0_0_20px_hsl(var(--gold)/0.2)] overflow-hidden">
+          <Link href={portalHref} className="hidden sm:block relative group px-6 md:px-8 py-2.5 rounded-xl font-heading font-bold text-xs tracking-[0.2em] uppercase text-white bg-slate-950 dark:bg-charcoal/90 border border-white/10 hover:border-gold-glow/40 transition-all duration-500 shadow-soft hover:shadow-[0_0_20px_hsl(var(--gold)/0.2)] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-gold/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <span className="relative flex items-center gap-3 z-10">
-              <span className="group-hover:text-gold-glow transition-colors duration-500">Member Login</span>
+              <span className="group-hover:text-gold-glow transition-colors duration-500">{portalLabel}</span>
               <div className="w-6 h-6 rounded-full bg-black/50 border border-white/10 flex items-center justify-center group-hover:border-gold-glow/50 transition-all duration-500 group-hover:shadow-[0_0_10px_hsl(var(--gold)/0.5)]">
-                <Zap className="w-3 h-3 text-slate-400 group-hover:text-gold-glow transition-colors duration-500 animate-pulse" />
+                {isAuthenticated ? (
+                  <UserCheck className="w-3 h-3 text-gold-glow" />
+                ) : (
+                  <Zap className="w-3 h-3 text-slate-400 group-hover:text-gold-glow transition-colors duration-500 animate-pulse" />
+                )}
               </div>
             </span>
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold-glow to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 ease-out" />
@@ -93,7 +106,7 @@ export default function Navbar() {
               <SheetContent side="right" className="w-[300px] border-l border-primary/10 dark:border-primary/20 bg-background/95 backdrop-blur-xl p-0">
                 <SheetHeader className="p-6 border-b border-primary/5 dark:border-primary/10 text-left">
                   <SheetTitle className="font-heading font-black text-2xl tracking-tight">
-                    NEXUS<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">GYM</span>
+                    FLEX<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">GYM</span>
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col h-full">
@@ -111,8 +124,8 @@ export default function Navbar() {
                     </div>
                   </div>
                   <div className="p-6 border-t border-primary/5 dark:border-primary/10 mb-20">
-                    <Link href="/login" className="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-primary text-black font-heading font-bold text-sm tracking-widest uppercase hover:bg-primary/90 transition-all">
-                      Member Login
+                    <Link href={portalHref} className="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-primary text-black font-heading font-bold text-sm tracking-widest uppercase hover:bg-primary/90 transition-all">
+                      {portalLabel}
                       <Zap className="w-4 h-4 fill-current" />
                     </Link>
                   </div>

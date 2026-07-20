@@ -109,7 +109,7 @@ export default function MemberSchedulePage() {
     const { addNotification } = useNotifications();
     const { user } = useAuth();
     
-    const memberEmail = user?.email || 'member@nexusgym.com';
+    const memberEmail = user?.email || 'member@flexgym.com';
     const memberName = user?.name || 'Jane Smith';
 
     // Load classes and listen to storage events
@@ -360,7 +360,7 @@ export default function MemberSchedulePage() {
                 <div className="relative z-10 flex flex-col gap-3">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 w-fit">
                         <CalendarDays className="w-4 h-4 text-blue-400" />
-                        <span className="text-xs font-bold text-blue-400 tracking-wider uppercase">Nexus Hub</span>
+                        <span className="text-xs font-bold text-blue-400 tracking-wider uppercase">Flex Hub</span>
                     </div>
                     <h1 className="text-3xl md:text-5xl font-black text-white mt-1 tracking-tight">
                         Classes

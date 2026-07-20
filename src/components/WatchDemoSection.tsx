@@ -32,7 +32,7 @@ export default function WatchDemoSection() {
                     </h2>
 
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-body">
-                        Take a comprehensive 5-minute tour of the Nexus Gym platform. Witness the seamless integration of member management, AI analytics, and elite facility control.
+                        Take a comprehensive 5-minute tour of the Flex Gym platform. Witness the seamless integration of member management, AI analytics, and elite facility control.
                     </p>
                 </motion.div>
 

@@ -94,7 +94,7 @@ export default function ReceptionistProfilePanel() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Mail className="w-3 h-3" /> Email Address</p>
-                                        <p className="font-medium text-foreground">elena.r@nexusgym.com</p>
+                                        <p className="font-medium text-foreground">elena.r@flexgym.com</p>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Phone className="w-3 h-3" /> Phone Number</p>

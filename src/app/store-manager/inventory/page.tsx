@@ -17,11 +17,11 @@ import AddProductForm from '@/components/store/AddProductForm';
 
 // Mock Inventory Data
 const INITIAL_INVENTORY = [
-    { id: '1', name: 'Nexus Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', price: 4199, stock: 145, status: 'Active', batchNo: 'B-2601', mfd: '2024-10-01', expiryDate: '2027-12-31' },
+    { id: '1', name: 'Flex Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', price: 4199, stock: 145, status: 'Active', batchNo: 'B-2601', mfd: '2024-10-01', expiryDate: '2027-12-31' },
     { id: '2', name: 'Titan Pre-Workout', sku: 'NX-PRE-02', category: 'Supplements', price: 3299, stock: 12, status: 'Expiring Soon', batchNo: 'B-2602', mfd: '2024-09-15', expiryDate: '2026-05-15' },
     { id: '3', name: 'Zenith BCAA Recovery', sku: 'NX-BCAA-03', category: 'Supplements', price: 2499, stock: 85, status: 'Expired', batchNo: 'B-2509', mfd: '2024-03-01', expiryDate: '2026-03-01' },
     { id: '4', name: 'Pro Powerlifting Belt', sku: 'GR-BELT-01', category: 'Gear', price: 7499, stock: 4, status: 'Critical', batchNo: 'G-001', mfd: '2024-01-20', expiryDate: null },
-    { id: '5', name: 'Nexus Compression Tee', sku: 'AP-TEE-01', category: 'Apparel', price: 2999, stock: 54, status: 'Active', batchNo: 'A-001', mfd: '2024-06-10', expiryDate: null },
+    { id: '5', name: 'Flex Compression Tee', sku: 'AP-TEE-01', category: 'Apparel', price: 2999, stock: 54, status: 'Active', batchNo: 'A-001', mfd: '2024-06-10', expiryDate: null },
     { id: '6', name: 'Elite Wrist Wraps', sku: 'GR-WRAP-02', category: 'Gear', price: 1699, stock: 0, status: 'Out of Stock', batchNo: 'G-002', mfd: '2024-02-05', expiryDate: null },
     { id: '7', name: 'Mass Gainer Pro', sku: 'NX-MASS-07', category: 'Supplements', price: 5499, stock: 30, status: 'Active', batchNo: 'B-2603', mfd: '2024-08-25', expiryDate: '2026-11-20' },
     { id: '8', name: 'Lifting Straps', sku: 'GR-STRAP-03', category: 'Gear', price: 999, stock: 18, status: 'Active', batchNo: 'G-003', mfd: '2024-05-12', expiryDate: null },

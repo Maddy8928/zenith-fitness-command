@@ -62,7 +62,7 @@ const productPerformanceData = [
 ];
 
 const lowStockAlerts = [
-    { id: 1, name: 'Nexus Whey Isolate', stock: 4, min: 10, status: 'critical' },
+    { id: 1, name: 'Flex Whey Isolate', stock: 4, min: 10, status: 'critical' },
     { id: 2, name: 'BCAA Recovery', stock: 8, min: 15, status: 'low' },
     { id: 3, name: 'Lifting Belts (L)', stock: 2, min: 5, status: 'critical' },
 ];
@@ -80,7 +80,7 @@ const recentSales = [
 ];
 
 const topSellingList = [
-    { name: 'Nexus Whey Isolate', sold: 124, revenue: '₹5,57,876', stock: '84%' },
+    { name: 'Flex Whey Isolate', sold: 124, revenue: '₹5,57,876', stock: '84%' },
     { name: 'Titan Pre-Workout', sold: 98, revenue: '₹2,44,902', stock: '92%' },
     { name: 'BCAA Recovery', sold: 86, revenue: '₹1,54,714', stock: '45%' },
 ];

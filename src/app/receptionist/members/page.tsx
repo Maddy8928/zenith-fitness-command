@@ -1004,7 +1004,7 @@ export default function MembersManagementPanel() {
                             <h3 className="text-xl font-black text-white italic uppercase tracking-tight flex items-center gap-2">
                                 <Users className="w-5 h-5 text-primary" /> Register New Member
                             </h3>
-                            <p className="text-xs text-slate-400 mt-1">Enroll a new client into the Nexus Gym system.</p>
+                            <p className="text-xs text-slate-400 mt-1">Enroll a new client into the Flex Gym system.</p>
 
                             {/* Step progress */}
                             <div className="flex items-center gap-2 mt-4">

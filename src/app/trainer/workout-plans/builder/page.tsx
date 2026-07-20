@@ -101,7 +101,7 @@ export default function WorkoutBuilder() {
     const [planFocus, setPlanFocus] = useState('Full Body Split');
     const [planDuration, setPlanDuration] = useState('8 Weeks');
     const [planIntensity, setPlanIntensity] = useState('Moderate');
-    const [selectedClient, setSelectedClient] = useState('member@nexusgym.com');
+    const [selectedClient, setSelectedClient] = useState('member@flexgym.com');
 
     // Exercise search & filters
     const [searchQuery, setSearchQuery] = useState('');
@@ -585,7 +585,7 @@ export default function WorkoutBuilder() {
                                 onChange={(e) => setSelectedClient(e.target.value)}
                                 className="w-full h-10 px-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                             >
-                                <option value="member@nexusgym.com">Alex Thompson (member@nexusgym.com)</option>
+                                <option value="member@flexgym.com">Alex Thompson (member@flexgym.com)</option>
                                 <option value="jessica.miller@example.com">Jessica Miller</option>
                                 <option value="david.garcia@example.com">David Garcia</option>
                                 <option value="lisa.anderson@example.com">Lisa Anderson</option>

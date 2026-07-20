@@ -52,12 +52,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Mock Users
 const MOCK_USERS: Record<string, User> = {
-    'admin@nexusgym.com': { id: '1', name: 'Super Admin', email: 'admin@nexusgym.com', role: 'ADMIN' },
-    'trainer@nexusgym.com': { id: '2', name: 'John Doe', email: 'trainer@nexusgym.com', role: 'TRAINER' },
-    'member@nexusgym.com': { id: '3', name: 'Jane Smith', email: 'member@nexusgym.com', role: 'MEMBER' },
-    'receptionist@nexusgym.com': { id: '4', name: 'Alice Frontdesk', email: 'receptionist@nexusgym.com', role: 'RECEPTIONIST' },
-    'cafe@nexusgym.com': { id: '5', name: 'Bjorn Refreshment', email: 'cafe@nexusgym.com', role: 'CAFE_WORKER' },
-    'store@nexusgym.com': { id: '6', name: 'Stock Manager', email: 'store@nexusgym.com', role: 'STORE_MANAGER' },
+    'admin@flexgym.com': { id: '1', name: 'Super Admin', email: 'admin@flexgym.com', role: 'ADMIN' },
+    'trainer@flexgym.com': { id: '2', name: 'John Doe', email: 'trainer@flexgym.com', role: 'TRAINER' },
+    'member@flexgym.com': { id: '3', name: 'Jane Smith', email: 'member@flexgym.com', role: 'MEMBER' },
+    'receptionist@flexgym.com': { id: '4', name: 'Alice Frontdesk', email: 'receptionist@flexgym.com', role: 'RECEPTIONIST' },
+    'cafe@flexgym.com': { id: '5', name: 'Bjorn Refreshment', email: 'cafe@flexgym.com', role: 'CAFE_WORKER' },
+    'store@flexgym.com': { id: '6', name: 'Stock Manager', email: 'store@flexgym.com', role: 'STORE_MANAGER' },
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {

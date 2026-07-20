@@ -63,7 +63,7 @@ export const MOCK_ORDERS: StoreOrder[] = [
         email: 'alex@example.com',
         phone: '+91 98765 43210',
         items: [
-            { productId: '1', name: 'Nexus Whey Isolate', qty: 1, price: 4199 }
+            { productId: '1', name: 'Flex Whey Isolate', qty: 1, price: 4199 }
         ],
         subtotal: 3558,
         tax: 641,

@@ -34,7 +34,7 @@ export default function AboutSection() {
                         >
                             <img
                                 src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop"
-                                alt="Nexus Gym Facility"
+                                alt="Flex Gym Facility"
                                 className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-black/60 to-transparent" />
@@ -71,7 +71,7 @@ export default function AboutSection() {
                         <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full border border-primary/20 bg-primary/5">
                             <Target className="w-4 h-4 text-primary" />
                             <span className="text-xs font-heading font-semibold text-primary uppercase tracking-widest">
-                                The Nexus Philosophy
+                                The Flex Philosophy
                             </span>
                         </div>
 
@@ -81,7 +81,7 @@ export default function AboutSection() {
 
                         <div className="space-y-6 text-lg text-muted-foreground dark:text-slate-300 font-body leading-relaxed mb-10">
                             <p>
-                                Welcome to Nexus Gym. We aren't just another commercial fitness center. We are a sanctuary for those who refuse to settle for average.
+                                Welcome to Flex Gym. We aren't just another commercial fitness center. We are a sanctuary for those who refuse to settle for average.
                             </p>
                             <p>
                                 Founded on the principles of biomechanical excellence and community-driven accountability, we provide a world-class environment designed to extract the absolute best version of yourself. From Olympic-grade equipment to recovery spa amenities, every square foot is engineered for performance.

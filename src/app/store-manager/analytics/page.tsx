@@ -34,7 +34,7 @@ const revenueData = [
 ];
 
 const topProductsData = [
-    { name: 'Nexus Whey Isolate', sales: 420 },
+    { name: 'Flex Whey Isolate', sales: 420 },
     { name: 'Titan Pre-Workout', sales: 380 },
     { name: 'Mass Gainer Pro', sales: 290 },
     { name: 'Zenith BCAA', sales: 210 },

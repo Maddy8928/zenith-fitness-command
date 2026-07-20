@@ -496,7 +496,7 @@ export default function MemberBillingPage() {
             id: transferId,
             senderId: currentUser?.id || '3',
             senderName: currentUser?.name || 'Jane Smith',
-            senderEmail: currentUser?.email || 'member@nexusgym.com',
+            senderEmail: currentUser?.email || 'member@flexgym.com',
             recipientType: transferType,
             recipientEmail,
             recipientName: transferType === 'new' ? recipientName : undefined,
@@ -923,7 +923,10 @@ export default function MemberBillingPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="flex-1 flex flex-col">
-                        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-slate-700/50 relative overflow-hidden flex-1 flex flex-col justify-between shadow-inner">
+                        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-slate-700/50 relative overflow-hidden flex-1 flex flex-col justify-between shadow-inner group/cc hover:border-slate-600/80 transition-all duration-500 hover:shadow-lg hover:shadow-black/40">
+                            {/* Animated light reflection sweep */}
+                            <div className="absolute inset-0 w-[50%] h-full bg-gradient-to-r from-transparent via-white/[0.06] to-transparent -skew-x-12 -translate-x-[150%] animate-card-shine-slow pointer-events-none group-hover/cc:via-white/[0.12] group-hover/cc:duration-1000" />
+                            
                             {/* Card Chip decoration */}
                             <div className="w-10 h-7 rounded bg-amber-200/20 border border-amber-200/10 mb-6 flex items-center justify-center overflow-hidden">
                                 <div className="w-full h-px bg-amber-200/30" />

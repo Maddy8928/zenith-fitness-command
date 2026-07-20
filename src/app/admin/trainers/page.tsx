@@ -4,12 +4,12 @@ import { Search, Plus, Filter, MoreVertical, Star, Users, Award, Mail, Phone } f
 import { useState } from "react";
 
 const trainersData = [
-    { id: "T-01", name: "Alex Johnson", role: "Head Trainer", specialization: "HIIT & Functional", rating: 4.9, activeClients: 24, totalSessions: 1250, email: "alex.j@nexusgym.com", phone: "(555) 111-2222", status: "Active", image: "AJ" },
-    { id: "T-02", name: "Sarah Williams", role: "Yoga Instructor", specialization: "Vinyasa & Mindfulness", rating: 4.8, activeClients: 35, totalSessions: 980, email: "sarah.w@nexusgym.com", phone: "(555) 222-3333", status: "Active", image: "SW" },
-    { id: "T-03", name: "Mike Tyson", role: "Strength Coach", specialization: "Powerlifting & Boxing", rating: 4.7, activeClients: 18, totalSessions: 1420, email: "mike.t@nexusgym.com", phone: "(555) 333-4444", status: "On Leave", image: "MT" },
-    { id: "T-04", name: "Emma Davis", role: "Cycling Instructor", specialization: "Spin & Endurance", rating: 4.9, activeClients: 42, totalSessions: 850, email: "emma.d@nexusgym.com", phone: "(555) 444-5555", status: "Active", image: "ED" },
-    { id: "T-05", name: "David Miller", role: "CrossFit Coach", specialization: "Olympics Lifts & WODs", rating: 4.6, activeClients: 22, totalSessions: 640, email: "david.m@nexusgym.com", phone: "(555) 555-6666", status: "Active", image: "DM" },
-    { id: "T-06", name: "Jessica Taylor", role: "Personal Trainer", specialization: "Core & Recovery", rating: 4.8, activeClients: 15, totalSessions: 420, email: "jessica.t@nexusgym.com", phone: "(555) 666-7777", status: "Active", image: "JT" },
+    { id: "T-01", name: "Alex Johnson", role: "Head Trainer", specialization: "HIIT & Functional", rating: 4.9, activeClients: 24, totalSessions: 1250, email: "alex.j@flexgym.com", phone: "(555) 111-2222", status: "Active", image: "AJ" },
+    { id: "T-02", name: "Sarah Williams", role: "Yoga Instructor", specialization: "Vinyasa & Mindfulness", rating: 4.8, activeClients: 35, totalSessions: 980, email: "sarah.w@flexgym.com", phone: "(555) 222-3333", status: "Active", image: "SW" },
+    { id: "T-03", name: "Mike Tyson", role: "Strength Coach", specialization: "Powerlifting & Boxing", rating: 4.7, activeClients: 18, totalSessions: 1420, email: "mike.t@flexgym.com", phone: "(555) 333-4444", status: "On Leave", image: "MT" },
+    { id: "T-04", name: "Emma Davis", role: "Cycling Instructor", specialization: "Spin & Endurance", rating: 4.9, activeClients: 42, totalSessions: 850, email: "emma.d@flexgym.com", phone: "(555) 444-5555", status: "Active", image: "ED" },
+    { id: "T-05", name: "David Miller", role: "CrossFit Coach", specialization: "Olympics Lifts & WODs", rating: 4.6, activeClients: 22, totalSessions: 640, email: "david.m@flexgym.com", phone: "(555) 555-6666", status: "Active", image: "DM" },
+    { id: "T-06", name: "Jessica Taylor", role: "Personal Trainer", specialization: "Core & Recovery", rating: 4.8, activeClients: 15, totalSessions: 420, email: "jessica.t@flexgym.com", phone: "(555) 666-7777", status: "Active", image: "JT" },
 ];
 
 const getStatusColor = (status: string) => {

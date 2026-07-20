@@ -137,7 +137,7 @@ export default function SidebarContent({ onItemClick, variant = 'sidebar' }: Sid
                         </div>
                         <div className="flex flex-col">
                             <span className="font-heading font-black text-base tracking-tight leading-none text-foreground dark:text-white">
-                                NEXUS<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">GYM</span>
+                                FLEX<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">GYM</span>
                             </span>
                             <span className="text-[10px] font-body text-muted-foreground uppercase tracking-widest hidden sm:block mt-1">
                                 Trainer Panel

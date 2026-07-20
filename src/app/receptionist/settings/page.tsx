@@ -92,7 +92,7 @@ export default function ReceptionistSettingsPage() {
     const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
     // Profile state
-    const [profileForm, setProfileForm] = useState({ firstName: 'Elena', lastName: 'Rodriguez', email: 'elena.r@nexusgym.com', phone: '+91 98765 43210' });
+    const [profileForm, setProfileForm] = useState({ firstName: 'Elena', lastName: 'Rodriguez', email: 'elena.r@flexgym.com', phone: '+91 98765 43210' });
     const [profileSaving, setProfileSaving] = useState(false);
 
     // Security state

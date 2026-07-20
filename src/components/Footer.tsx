@@ -19,7 +19,7 @@ export default function Footer() {
                 <Dumbbell className="w-5 h-5 text-primary dark:text-gold-glow drop-shadow-[0_0_8px_hsl(var(--gold)/0.5)]" />
               </div>
               <span className="font-heading font-black text-2xl tracking-tight text-slate-900 dark:text-white flex gap-1">
-                NEXUS
+                FLEX
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">
                   GYM
                 </span>
@@ -56,7 +56,7 @@ export default function Footer() {
         <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent mb-8" />
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-xs text-slate-500 font-body tracking-wider uppercase">© 2026 NexusGym Corporate. All rights reserved.</p>
+          <p className="text-xs text-slate-500 font-body tracking-wider uppercase">© 2026 FlexGym Corporate. All rights reserved.</p>
                       <div className="flex gap-4 flex-wrap justify-center md:justify-end">
             {[Facebook, Twitter, Instagram, Youtube].map((Icon, i) => (
               <a key={i} href="#" className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-primary dark:hover:bg-gold-glow hover:text-white dark:hover:text-black hover:scale-110 hover:shadow-[0_0_15px_hsl(var(--gold)/0.3)] transition-all duration-300">

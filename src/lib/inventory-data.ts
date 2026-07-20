@@ -17,7 +17,7 @@ export interface InventoryProduct {
 
 export const INVENTORY_DATA: InventoryProduct[] = [
     { 
-        id: '1', name: 'Nexus Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', 
+        id: '1', name: 'Flex Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', 
         sellingPrice: 4199, costPrice: 2800, stock: 145, minThreshold: 30, optimalStock: 150, 
         preferredSupplierId: 's-001', status: 'Active', batchNo: 'B-2601', expiryDate: '2027-12-31',
         salesVelocity: 12.5
@@ -41,7 +41,7 @@ export const INVENTORY_DATA: InventoryProduct[] = [
         salesVelocity: 1.2
     },
     { 
-        id: '5', name: 'Nexus Compression Tee', sku: 'AP-TEE-01', category: 'Apparel', 
+        id: '5', name: 'Flex Compression Tee', sku: 'AP-TEE-01', category: 'Apparel', 
         sellingPrice: 2999, costPrice: 1400, stock: 54, minThreshold: 20, optimalStock: 100, 
         preferredSupplierId: 's-003', status: 'Active', batchNo: 'A-001', expiryDate: null,
         salesVelocity: 9.8

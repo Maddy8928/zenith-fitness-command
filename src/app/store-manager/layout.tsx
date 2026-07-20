@@ -265,7 +265,7 @@ function LayoutInner({
                             <ShoppingCart className="w-4 h-4 text-white" />
                         </div>
                         <span className="text-xl font-black tracking-tight text-white uppercase italic">
-                            Nexus<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Store</span>
+                            Flex<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Store</span>
                         </span>
                     </div>
                 </div>
@@ -364,7 +364,7 @@ function LayoutInner({
                                     <ShoppingCart className="w-4 h-4 text-white" />
                                 </div>
                                 <span className="text-xl font-black tracking-tight text-white uppercase italic">
-                                    Nexus<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Store</span>
+                                    Flex<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Store</span>
                                 </span>
                             </div>
                         </div>

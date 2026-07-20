@@ -52,7 +52,7 @@ export const getInitialBookings = (): TherapyBooking[] => {
         },
         {
             id: 'BK-102',
-            memberId: '3', // David Garcia (or member@nexusgym.com)
+            memberId: '3', // David Garcia (or member@flexgym.com)
             memberName: 'David Garcia',
             membershipId: 'NXS-4821',
             serviceId: 'rs-3',

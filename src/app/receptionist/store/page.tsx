@@ -16,10 +16,10 @@ type Product = {
 type CartItem = Product & { quantity: number };
 
 const mockProducts: Product[] = [
-    { id: 'p1', name: 'Nexus Whey Isolate', category: 'Supplements', price: 4199, stock: 45, image: 'bg-emerald-500/20 text-emerald-500' },
+    { id: 'p1', name: 'Flex Whey Isolate', category: 'Supplements', price: 4199, stock: 45, image: 'bg-emerald-500/20 text-emerald-500' },
     { id: 'p2', name: 'Pre-Workout Energizer', category: 'Supplements', price: 2949, stock: 22, image: 'bg-amber-500/20 text-amber-500' },
     { id: 'p3', name: 'BCAA Recovery', category: 'Supplements', price: 2499, stock: 15, image: 'bg-blue-500/20 text-blue-500' },
-    { id: 'p4', name: 'Nexus Gym Tee', category: 'Apparel', price: 1999, stock: 50, image: 'bg-slate-500/20 text-slate-300' },
+    { id: 'p4', name: 'Flex Gym Tee', category: 'Apparel', price: 1999, stock: 50, image: 'bg-slate-500/20 text-slate-300' },
     { id: 'p5', name: 'Performance Shorts', category: 'Apparel', price: 3299, stock: 30, image: 'bg-slate-500/20 text-slate-300' },
     { id: 'p6', name: 'Smart Shaker Bottle', category: 'Accessories', price: 1249, stock: 100, image: 'bg-primary/20 text-primary' },
     { id: 'p7', name: 'Lifting Straps', category: 'Accessories', price: 1699, stock: 40, image: 'bg-rose-500/20 text-rose-500' },

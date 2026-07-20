@@ -18,7 +18,7 @@ interface Product {
 const PRODUCTS: Product[] = [
     {
         id: 1,
-        name: 'Nexus Iso-Whey Protein',
+        name: 'Flex Iso-Whey Protein',
         category: 'supplements',
         price: '₹5,499',
         rating: 5,
@@ -48,7 +48,7 @@ const PRODUCTS: Product[] = [
     },
     {
         id: 4,
-        name: 'Nexus Pre-Workout Ignite',
+        name: 'Flex Pre-Workout Ignite',
         category: 'supplements',
         price: '₹3,199',
         rating: 4.7,
@@ -66,7 +66,7 @@ const PRODUCTS: Product[] = [
     },
     {
         id: 6,
-        name: 'Nexus Hybrid Gym Duffel',
+        name: 'Flex Hybrid Gym Duffel',
         category: 'gear',
         price: '₹4,999',
         rating: 5,
@@ -95,7 +95,7 @@ export default function StoreSection() {
                     <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full border border-primary/20 bg-primary/5">
                         <ShoppingBag className="w-4 h-4 text-primary" />
                         <span className="text-xs font-heading font-semibold text-primary uppercase tracking-widest">
-                            Nexus Official Store
+                            Flex Official Store
                         </span>
                     </div>
 

@@ -168,7 +168,7 @@ export default function OrderManagementPage() {
                                             <div className="flex items-center gap-6 justify-between md:justify-end">
                                                 <div className="text-right">
                                                     <p className="text-lg font-black text-white">{fmt(order.totalAmount)}</p>
-                                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Nexus Store</p>
+                                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Flex Store</p>
                                                 </div>
                                                 <div className={`px-3 py-1 rounded-full border ${config.bg} ${config.border} ${config.color} text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5`}>
                                                     <div className={`w-1.5 h-1.5 rounded-full ${config.color.replace('text', 'bg')}`} />

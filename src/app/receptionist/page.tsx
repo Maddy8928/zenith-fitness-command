@@ -35,7 +35,7 @@ export default function ReceptionistDashboard() {
             <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
                     <h1 className="text-3xl font-heading font-bold text-foreground font-gradient">Front Desk Dashboard</h1>
-                    <p className="text-muted-foreground mt-2">Welcome back. Here's what's happening today at Nexus Gym.</p>
+                    <p className="text-muted-foreground mt-2">Welcome back. Here's what's happening today at Flex Gym.</p>
                 </div>
                 <ShiftStatusBadge status={status} elapsedTime={elapsedTime} themeColor="primary" />
             </header>

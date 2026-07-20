@@ -103,9 +103,9 @@ function StoreProfile() {
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <Field label="Store Name"><Input defaultValue="NexusStore" /></Field>
+                    <Field label="Store Name"><Input defaultValue="FlexStore" /></Field>
                     <Field label="GST Number"><Input defaultValue="27AAAAA0000A1Z5" /></Field>
-                    <Field label="Contact Email"><Input type="email" defaultValue="store@nexusgym.com" /></Field>
+                    <Field label="Contact Email"><Input type="email" defaultValue="store@flexgym.com" /></Field>
                     <Field label="Phone Number"><Input type="tel" defaultValue="+91 98765 43210" /></Field>
                 </div>
             </SectionCard>
@@ -118,7 +118,7 @@ function StoreProfile() {
                     <Field label="Currency"><Select options={['INR (₹)', 'USD ($)', 'EUR (€)']} defaultValue="INR (₹)" /></Field>
                 </div>
                 <Field label="Full Address">
-                    <textarea rows={3} defaultValue={"Ground Floor, Nexus Building\nBandra West, Mumbai - 400050"} className={inputCls + ' resize-none'} />
+                    <textarea rows={3} defaultValue={"Ground Floor, Flex Building\nBandra West, Mumbai - 400050"} className={inputCls + ' resize-none'} />
                 </Field>
             </SectionCard>
         </div>
@@ -136,14 +136,14 @@ function MyAccount() {
                     </div>
                     <div>
                         <p className="font-black text-white">Store Manager</p>
-                        <p className="text-xs text-slate-500 mt-1">store.manager@nexusgym.com</p>
+                        <p className="text-xs text-slate-500 mt-1">store.manager@flexgym.com</p>
                         <Badge className="mt-2 bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[10px] font-black uppercase tracking-wider">STORE_MANAGER</Badge>
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <Field label="Full Name"><Input defaultValue="Store Manager" /></Field>
                     <Field label="Display Name"><Input defaultValue="SM" /></Field>
-                    <Field label="Email Address"><Input type="email" defaultValue="store.manager@nexusgym.com" /></Field>
+                    <Field label="Email Address"><Input type="email" defaultValue="store.manager@flexgym.com" /></Field>
                     <Field label="Phone"><Input type="tel" defaultValue="+91 98765 43210" /></Field>
                 </div>
             </SectionCard>
@@ -234,8 +234,8 @@ function InventoryRules() {
 
             <SectionCard title="Supplier Defaults" desc="Default supplier contact for auto-order requests.">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <Field label="Default Supplier Name"><Input defaultValue="Nexus Distributors" /></Field>
-                    <Field label="Supplier Email"><Input type="email" defaultValue="orders@nexusdist.com" /></Field>
+                    <Field label="Default Supplier Name"><Input defaultValue="Flex Distributors" /></Field>
+                    <Field label="Supplier Email"><Input type="email" defaultValue="orders@flexdist.com" /></Field>
                     <Field label="Lead Time"><Select options={['1-2 days', '3-5 days', '1 week', '2 weeks']} defaultValue="3-5 days" /></Field>
                     <Field label="Order Method"><Select options={['Email', 'WhatsApp', 'Portal', 'Phone']} defaultValue="Email" /></Field>
                 </div>

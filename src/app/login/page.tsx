@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dumbbell, Eye, EyeOff, Loader2, LogIn, ShieldCheck, User } from 'lucide-react';
+import { Dumbbell, Eye, EyeOff, Loader2, LogIn, ShieldCheck, User, Users, Shield, Award, Coffee, Store } from 'lucide-react';
 import { useAuth, UserRole } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -18,24 +18,58 @@ export default function LoginPage() {
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [error, setError] = useState('');
 
-    const { login } = useAuth();
+    const { user, login, isLoading } = useAuth();
+    const router = useRouter();
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        if (!isLoading && user) {
+            if (user.role === 'ADMIN') router.push('/admin');
+            else if (user.role === 'TRAINER') router.push('/trainer');
+            else if (user.role === 'RECEPTIONIST') router.push('/receptionist');
+            else if (user.role === 'CAFE_WORKER') router.push('/cafe');
+            else if (user.role === 'STORE_MANAGER') router.push('/store-manager');
+            else router.push('/member');
+        }
+    }, [user, isLoading, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!email || !password) {
-            setError('Please fill in all fields.');
-            return;
-        }
+        const targetEmail = email || (selectedRole === 'MEMBER' ? 'member@flexgym.com' : `${selectedRole.toLowerCase()}@flexgym.com`);
 
         setIsLoggingIn(true);
 
         try {
-            // Pass the selected role explicitly for the mock authentication demo
-            await login(email, selectedRole);
+            await login(targetEmail, selectedRole);
+            if (selectedRole === 'ADMIN') router.push('/admin');
+            else if (selectedRole === 'TRAINER') router.push('/trainer');
+            else if (selectedRole === 'RECEPTIONIST') router.push('/receptionist');
+            else if (selectedRole === 'CAFE_WORKER') router.push('/cafe');
+            else if (selectedRole === 'STORE_MANAGER') router.push('/store-manager');
+            else router.push('/member');
         } catch (err) {
             setError('Invalid credentials. Please try again.');
+            setIsLoggingIn(false);
+        }
+    };
+
+    const handleQuickLogin = async (role: UserRole, demoEmail: string) => {
+        setSelectedRole(role);
+        setEmail(demoEmail);
+        setPassword('password123');
+        setIsLoggingIn(true);
+        try {
+            await login(demoEmail, role);
+            if (role === 'ADMIN') router.push('/admin');
+            else if (role === 'TRAINER') router.push('/trainer');
+            else if (role === 'RECEPTIONIST') router.push('/receptionist');
+            else if (role === 'CAFE_WORKER') router.push('/cafe');
+            else if (role === 'STORE_MANAGER') router.push('/store-manager');
+            else router.push('/member');
+        } catch (err) {
+            setError('Failed to login. Please try again.');
             setIsLoggingIn(false);
         }
     };
@@ -60,8 +94,6 @@ export default function LoginPage() {
         }
     };
 
-
-
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden text-slate-50">
 
@@ -84,7 +116,7 @@ export default function LoginPage() {
                             <Dumbbell className="h-6 w-6 text-primary dark:text-gold-glow" />
                         </div>
                         <span className="text-3xl font-heading font-black tracking-tight text-white">
-                            NEXUS<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">GYM</span>
+                            FLEX<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">GYM</span>
                         </span>
                     </div>
                 </motion.div>
@@ -92,20 +124,49 @@ export default function LoginPage() {
                 <Card className="bg-slate-900/60 backdrop-blur-2xl border-slate-800 shadow-2xl overflow-hidden rounded-3xl">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500" />
 
-                    <CardHeader className="space-y-3 pb-6 text-center">
+                    <CardHeader className="space-y-3 pb-4 text-center">
                         <motion.div variants={itemVariants}>
                             <CardTitle className="text-3xl font-bold tracking-tight text-white">
                                 Welcome Back
                             </CardTitle>
                             <CardDescription className="text-slate-400 mt-2">
-                                Sign in to your account to continue
+                                Sign in to your account to access your dashboard
                             </CardDescription>
                         </motion.div>
-
-
                     </CardHeader>
 
                     <CardContent>
+                        {/* Quick Demo Role Selector */}
+                        <div className="mb-6">
+                            <Label className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2 block text-center">Quick Login As</Label>
+                            <div className="grid grid-cols-3 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('MEMBER', 'member@flexgym.com')}
+                                    className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${selectedRole === 'MEMBER' ? 'bg-primary/20 border-primary text-primary' : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'}`}
+                                >
+                                    <Users className="w-3.5 h-3.5" />
+                                    Member
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('TRAINER', 'trainer@flexgym.com')}
+                                    className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${selectedRole === 'TRAINER' ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400' : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'}`}
+                                >
+                                    <Award className="w-3.5 h-3.5" />
+                                    Trainer
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('ADMIN', 'admin@flexgym.com')}
+                                    className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${selectedRole === 'ADMIN' ? 'bg-rose-500/20 border-rose-500 text-rose-400' : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'}`}
+                                >
+                                    <Shield className="w-3.5 h-3.5" />
+                                    Admin
+                                </button>
+                            </div>
+                        </div>
+
                         <form onSubmit={handleLogin} className="space-y-4">
                             <AnimatePresence>
                                 {error && (
@@ -130,11 +191,10 @@ export default function LoginPage() {
                                     <Input
                                         id="email"
                                         type="email"
-                                        placeholder="name@nexusgym.com"
+                                        placeholder="member@flexgym.com"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="pl-10 bg-slate-950/50 border-slate-800 text-slate-100 focus:ring-indigo-500 focus:border-indigo-500 transition-all rounded-xl h-12"
-                                        required
                                     />
                                 </div>
                             </motion.div>
@@ -155,7 +215,6 @@ export default function LoginPage() {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="pl-10 pr-10 bg-slate-950/50 border-slate-800 text-slate-100 focus:ring-indigo-500 focus:border-indigo-500 transition-all rounded-xl h-12"
-                                        required
                                     />
                                     <button
                                         type="button"
@@ -181,7 +240,7 @@ export default function LoginPage() {
                                     ) : (
                                         <>
                                             <LogIn className="mr-2 h-4 w-4" />
-                                            Sign In to Nexus Gym
+                                            Sign In as Member (`/member`)
                                         </>
                                     )}
                                 </Button>
@@ -198,3 +257,4 @@ export default function LoginPage() {
         </div>
     );
 }
+

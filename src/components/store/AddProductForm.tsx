@@ -147,7 +147,7 @@ export default function AddProductForm({ onClose, onSuccess }: AddProductFormPro
                                 <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">
                                     Inventory <span className="text-indigo-400">Command</span>
                                 </h2>
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">Product Integration Nexus</p>
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">Product Integration Flex</p>
                             </div>
                         </div>
                         <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full w-12 h-12 hover:bg-white/5 text-slate-400 hover:text-white transition-all">
@@ -195,7 +195,7 @@ export default function AddProductForm({ onClose, onSuccess }: AddProductFormPro
                                                         </Tooltip>
                                                     </div>
                                                     <Input 
-                                                        placeholder="e.g. Nexus Ultra Whey"
+                                                        placeholder="e.g. Flex Ultra Whey"
                                                         value={formData.name}
                                                         onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                                                         className={`bg-black/40 border-white/5 text-white h-14 rounded-2xl px-6 text-lg font-bold placeholder:text-slate-800 focus:ring-indigo-500/20 transition-all ${errors.name ? 'border-rose-500' : ''}`}
@@ -218,7 +218,7 @@ export default function AddProductForm({ onClose, onSuccess }: AddProductFormPro
                                                     <div className="space-y-2">
                                                         <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Brand</Label>
                                                         <Input 
-                                                            placeholder="Nexus"
+                                                            placeholder="Flex"
                                                             value={formData.brand}
                                                             onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))}
                                                             className="bg-black/40 border-white/5 text-white h-14 rounded-2xl px-6 font-bold"
@@ -326,7 +326,7 @@ export default function AddProductForm({ onClose, onSuccess }: AddProductFormPro
                                                     <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Preferred Supplier</Label>
                                                     <Select value={formData.supplier} onValueChange={(v) => setFormData(prev => ({ ...prev, supplier: v }))}>
                                                         <SelectTrigger className="bg-black/40 border-white/5 text-white h-14 rounded-2xl px-6 font-bold"><SelectValue placeholder="Select Supplier" /></SelectTrigger>
-                                                        <SelectContent className="bg-slate-900 border-white/10 text-white"><SelectItem value="nexus_global">Nexus Global Distribution</SelectItem></SelectContent>
+                                                        <SelectContent className="bg-slate-900 border-white/10 text-white"><SelectItem value="flex_global">Flex Global Distribution</SelectItem></SelectContent>
                                                     </Select>
                                                 </div>
                                             </motion.div>

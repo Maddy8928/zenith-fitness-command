@@ -152,7 +152,7 @@ export default function TrainerHyroxManagement() {
             localStorage.setItem('zenith_trainer_hyrox_member_assignments', JSON.stringify(initialAssignments));
         }
 
-        // Load Live Logged-in Member (Alex J. / member@nexusgym.com) progress
+        // Load Live Logged-in Member (Alex J. / member@flexgym.com) progress
         const liveProgId = localStorage.getItem('zenith_hyrox_program_id');
         setAlexProgramId(liveProgId);
 
@@ -181,7 +181,7 @@ export default function TrainerHyroxManagement() {
     const ROSTER = [
         {
             name: 'Alex Thompson',
-            email: 'member@nexusgym.com', // Links to active member session!
+            email: 'member@flexgym.com', // Links to active member session!
             avatar: 'AT',
             programId: alexProgramId,
             completedCount: alexCompletedCount,
@@ -307,8 +307,8 @@ export default function TrainerHyroxManagement() {
         const program = programs.find(p => p.id === selectedProgramId);
         if (!program) return;
 
-        // If assigning to Alex Thompson (member@nexusgym.com) - sync with active member keys
-        if (selectedMemberEmail === 'member@nexusgym.com') {
+        // If assigning to Alex Thompson (member@flexgym.com) - sync with active member keys
+        if (selectedMemberEmail === 'member@flexgym.com') {
             localStorage.setItem('zenith_hyrox_program_id', selectedProgramId);
             localStorage.removeItem('zenith_hyrox_completed_workouts'); // reset progress
             setAlexProgramId(selectedProgramId);
@@ -467,7 +467,7 @@ export default function TrainerHyroxManagement() {
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                         {prog.schedule.map((slot, sIdx) => {
                                                             // For Alex Thompson, check completion
-                                                            const isCompleted = member.email === 'member@nexusgym.com' 
+                                                            const isCompleted = member.email === 'member@flexgym.com' 
                                                                 ? localStorage.getItem('zenith_hyrox_completed_workouts')?.includes(`"${prog.id}_${sIdx}":true`)
                                                                 : sIdx < member.completedCount; // Mock check-off for others
                                                             

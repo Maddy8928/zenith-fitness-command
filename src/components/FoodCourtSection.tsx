@@ -50,7 +50,7 @@ export default function FoodCourtSection() {
                     <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full border border-primary/20 bg-primary/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <UtensilsCrossed className="w-4 h-4 text-primary" />
                         <span className="text-xs font-heading font-semibold text-primary uppercase tracking-widest">
-                            Nexus Fuel Station
+                            Flex Fuel Station
                         </span>
                     </div>
 

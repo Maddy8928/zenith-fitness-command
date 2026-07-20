@@ -63,7 +63,7 @@ export default function LoadingScreen() {
                                     transition={{ duration: 0.6, delay: 0.3 }}
                                     className="font-heading font-black text-4xl tracking-tight text-slate-900 dark:text-white flex gap-2"
                                 >
-                                    NEXUS
+                                    FLEX
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-neon-cyan">
                                         GYM
                                     </span>

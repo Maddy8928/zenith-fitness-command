@@ -127,7 +127,7 @@ export const INITIAL_PURCHASE_ORDERS: PurchaseOrder[] = [
         date: '2024-10-20', expectedDelivery: '2024-10-23', receivedDate: '2024-10-23',
         status: 'Delivered', notes: 'Monthly supplement restock.',
         items: [
-            { productId: '1', productName: 'Nexus Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', qty: 50, costPrice: 2800, sellingPrice: 4199, mfd: '2024-10-01' },
+            { productId: '1', productName: 'Flex Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', qty: 50, costPrice: 2800, sellingPrice: 4199, mfd: '2024-10-01' },
             { productId: '2', productName: 'Titan Pre-Workout', sku: 'NX-PRE-02', category: 'Supplements', qty: 24, costPrice: 2100, sellingPrice: 3299, mfd: '2024-09-15' },
         ],
         subtotal: 245000, tax: 44100, total: 289100,
@@ -157,7 +157,7 @@ export const INITIAL_PURCHASE_ORDERS: PurchaseOrder[] = [
         date: '2024-10-22', expectedDelivery: '2024-10-27',
         status: 'Confirmed', notes: 'New apparel season collection.',
         items: [
-            { productId: '5', productName: 'Nexus Compression Tee', sku: 'AP-TEE-01', category: 'Apparel', qty: 100, costPrice: 1400, sellingPrice: 2999 },
+            { productId: '5', productName: 'Flex Compression Tee', sku: 'AP-TEE-01', category: 'Apparel', qty: 100, costPrice: 1400, sellingPrice: 2999 },
         ],
         subtotal: 140000, tax: 25200, total: 165200,
     },
@@ -167,7 +167,7 @@ export const INITIAL_PURCHASE_ORDERS: PurchaseOrder[] = [
         date: '2024-10-24', expectedDelivery: '2024-10-29',
         status: 'Draft', notes: 'Pending manager approval.',
         items: [
-            { productId: '1', productName: 'Nexus Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', qty: 30, costPrice: 2900, sellingPrice: 4199 },
+            { productId: '1', productName: 'Flex Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', qty: 30, costPrice: 2900, sellingPrice: 4199 },
         ],
         subtotal: 87000, tax: 15660, total: 102660,
     },

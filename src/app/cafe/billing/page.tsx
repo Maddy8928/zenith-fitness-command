@@ -625,7 +625,7 @@ export default function CafeBillingPage() {
                                     <div className="flex flex-col sm:flex-row justify-between items-start gap-8 mb-12">
                                         <div className="space-y-1.5">
                                             <h2 className="text-3xl font-black italic tracking-tighter text-white">
-                                                NEXUS <span className="text-emerald-500 not-italic">CAFE</span>
+                                                FLEX <span className="text-emerald-500 not-italic">CAFE</span>
                                             </h2>
                                             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5 text-emerald-500"/> Zenith Fitness HQ, Command Center</p>
                                             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-emerald-500"/> +91 800-ZENITH-CF</p>

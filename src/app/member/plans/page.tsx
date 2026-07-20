@@ -42,21 +42,21 @@ const TRAINERS_INFO = {
         role: 'Head of Strength & Conditioning',
         specialties: ['Powerlifting', 'Strength Training', 'Bodybuilding'],
         experience: '12+ Years',
-        image: 'https://images.unsplash.com/photo-1567013127542-490d757e51fc?q=80&w=800&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=800&auto=format&fit=crop',
     },
     'sarah-chen': {
         name: 'Sarah Chen',
         role: 'HIIT Specialist',
         specialties: ['HIIT', 'Cardio Conditioning', 'Core Strength'],
         experience: '8 Years',
-        image: 'https://images.unsplash.com/photo-1611566026373-c6c8dab0f909?q=80&w=1587&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800&auto=format&fit=crop',
     },
     'michael-rivers': {
         name: 'Michael Rivers',
         role: 'Recovery & Mobility Specialist',
         specialties: ['Mobility', 'Injury Prevention', 'Active Recovery'],
         experience: '10 Years',
-        image: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=1587&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop',
     }
 };
 

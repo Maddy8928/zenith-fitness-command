@@ -14,7 +14,7 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import LoadingScreen from "@/components/LoadingScreen";
 
 export const metadata: Metadata = {
-    title: "Nexus Gym Command",
+    title: "Flex Gym Command",
     description: "Next Generation Fitness Platform",
 };
 

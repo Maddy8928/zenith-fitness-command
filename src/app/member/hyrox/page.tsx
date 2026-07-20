@@ -188,7 +188,7 @@ export default function HyroxPortalPage() {
                 category: 'MEMBER',
                 priority: 'medium',
                 title: '🏆 HYROX Program Registered',
-                message: `${user?.name || 'Jane Smith'} (${user?.email || 'member@nexusgym.com'}) registered for the "${name}" program.`,
+                message: `${user?.name || 'Jane Smith'} (${user?.email || 'member@flexgym.com'}) registered for the "${name}" program.`,
                 metadata: { programId: id, programName: name, memberName: user?.name, memberEmail: user?.email }
             });
         }
@@ -218,7 +218,7 @@ export default function HyroxPortalPage() {
                     category: 'MEMBER',
                     priority: 'medium',
                     title: '🔥 HYROX Workout Completed',
-                    message: `${user?.name || 'Jane Smith'} (${user?.email || 'member@nexusgym.com'}) completed workout: "${workout.workout}" in program "${activeProgram.name}".`,
+                    message: `${user?.name || 'Jane Smith'} (${user?.email || 'member@flexgym.com'}) completed workout: "${workout.workout}" in program "${activeProgram.name}".`,
                     metadata: { programId: activeProgram.id, programName: activeProgram.name, workoutIndex: idx, workoutTitle: workout.workout, memberName: user?.name, memberEmail: user?.email }
                 });
             }
@@ -250,7 +250,7 @@ export default function HyroxPortalPage() {
             category: 'MEMBER',
             priority: 'medium',
             title: '⚡ New HYROX Personal Best',
-            message: `${user?.name || 'Jane Smith'} (${user?.email || 'member@nexusgym.com'}) set a new PB of ${inputVal} for "${title}".`,
+            message: `${user?.name || 'Jane Smith'} (${user?.email || 'member@flexgym.com'}) set a new PB of ${inputVal} for "${title}".`,
             metadata: { challengeId: id, challengeTitle: title, score: inputVal, memberName: user?.name, memberEmail: user?.email }
         });
 
@@ -278,7 +278,7 @@ export default function HyroxPortalPage() {
                 category: 'MEMBER',
                 priority: 'medium',
                 title: '🏁 HYROX Race Registration',
-                message: `${user?.name || 'Jane Smith'} (${user?.email || 'member@nexusgym.com'}) signed up for "${title}".`,
+                message: `${user?.name || 'Jane Smith'} (${user?.email || 'member@flexgym.com'}) signed up for "${title}".`,
                 metadata: { eventId: id, eventTitle: title, memberName: user?.name, memberEmail: user?.email }
             });
         } else {

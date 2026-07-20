@@ -81,7 +81,7 @@ export default function SettingsPage() {
                                             <label className="text-sm font-medium text-foreground">Gym Name</label>
                                             <input
                                                 type="text"
-                                                defaultValue="Nexus Gym"
+                                                defaultValue="Flex Gym"
                                                 className="w-full px-4 py-2.5 rounded-xl bg-background/50 border border-primary/10 text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all text-foreground"
                                             />
                                         </div>
@@ -89,7 +89,7 @@ export default function SettingsPage() {
                                             <label className="text-sm font-medium text-foreground">Contact Email</label>
                                             <input
                                                 type="email"
-                                                defaultValue="hello@nexusgym.com"
+                                                defaultValue="hello@flexgym.com"
                                                 className="w-full px-4 py-2.5 rounded-xl bg-background/50 border border-primary/10 text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all text-foreground"
                                             />
                                         </div>

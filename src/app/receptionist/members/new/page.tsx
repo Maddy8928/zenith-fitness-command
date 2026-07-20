@@ -82,7 +82,7 @@ export default function NewMemberRegistration() {
                 </Link>
                 <div>
                     <h1 className="text-3xl font-heading font-bold text-foreground">New Member Registration</h1>
-                    <p className="text-muted-foreground">Enroll new clients quickly into the Nexus System.</p>
+                    <p className="text-muted-foreground">Enroll new clients quickly into the Flex System.</p>
                 </div>
             </div>
 
@@ -170,7 +170,7 @@ export default function NewMemberRegistration() {
                                     {[
                                         { id: 'basic', name: 'Basic', price: '₹4,199', desc: 'Gym floor access only' },
                                         { id: 'standard', name: 'Standard', price: '₹7,499', desc: 'Gym floor + Open Classes' },
-                                        { id: 'premium', name: 'Premium (Nexus)', price: '₹12,499', desc: 'All access + 2 PT sessions/mo' }
+                                        { id: 'premium', name: 'Premium (Flex)', price: '₹12,499', desc: 'All access + 2 PT sessions/mo' }
                                     ].map((plan) => (
                                         <div
                                             key={plan.id}

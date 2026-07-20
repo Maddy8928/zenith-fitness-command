@@ -46,7 +46,7 @@ const TRAINERS = [
         role: 'Head of Strength & Conditioning',
         bio: 'Former Olympic weightlifter with 12+ years of experience specialized in functional hypertrophy and raw power development.',
         longBio: 'Marcus has spent over a decade training elite athletes and everyday fitness enthusiasts alike. Having competed at national levels in Olympic weightlifting, he brings a scientific yet practical approach to raw power development, barbell mechanics, and muscle hypertrophy. He believes in building a resilient foundation first.',
-        image: 'https://images.unsplash.com/photo-1567013127542-490d757e51fc?q=80&w=800&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=800&auto=format&fit=crop',
         icon: Dumbbell,
         specialties: ['Powerlifting', 'Strength Training', 'Bodybuilding'],
         certifications: ['CSCS (Certified Strength & Conditioning Specialist)', 'USAW Level 2 Coach', 'Precision Nutrition L1'],
@@ -60,7 +60,7 @@ const TRAINERS = [
         role: 'HIIT Specialist',
         bio: 'Sarah combines high-intensity interval training with functional movements. Her classes are known for explosive energy and rapid conditioning.',
         longBio: 'Sarah is a high-energy conditioning specialist who focuses on cardiovascular capacity, speed, and endurance. With a background in track & field, she designs fat-burning, high-tempo workouts that challenge your mental toughness and physique. Her sessions are intense, dynamic, and result-driven.',
-        image: 'https://images.unsplash.com/photo-1611566026373-c6c8dab0f909?q=80&w=1587&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800&auto=format&fit=crop',
         icon: Activity,
         specialties: ['HIIT', 'Cardio Conditioning', 'Core Strength'],
         certifications: ['NASM CPT (Certified Personal Trainer)', 'FMS Level 1 (Functional Movement Screen)', 'HIIT Performance Certificate'],
@@ -74,7 +74,7 @@ const TRAINERS = [
         role: 'Recovery & Mobility Specialist',
         bio: 'Former physical therapist assistant specializing in injury prevention, joint mobility, and athletic recovery protocols.',
         longBio: 'Michael believes that longevity is the key to fitness. With professional experience in orthopedic recovery, he coaches body awareness, myofascial release, joint mobility, and posture correction. Whether you are recovering from an injury or trying to enhance movement efficiency, Michael provides a custom recovery approach.',
-        image: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=1587&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop',
         icon: Shield,
         specialties: ['Mobility', 'Injury Prevention', 'Active Recovery'],
         certifications: ['PTA (Physical Therapist Assistant)', 'FRCms (Functional Range Conditioning)', 'TriggerPoint Therapy L2'],
@@ -164,7 +164,7 @@ export default function PersonalTrainingPage() {
                 trainerId: trainer.id,
                 trainerName: trainer.name,
                 memberName: currentUser?.name || 'Alex',
-                memberEmail: currentUser?.email || 'member@nexusgym.com'
+                memberEmail: currentUser?.email || 'member@flexgym.com'
             }
         });
 
@@ -217,7 +217,7 @@ export default function PersonalTrainingPage() {
                             Personal <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Training</span>
                         </h1>
                         <p className="text-muted-foreground text-sm md:text-base max-w-2xl mt-1">
-                            Accelerate your transformation with Nexus elite coaches. Select a trainer, send an enrollment request, and kickstart your custom fitness regime.
+                            Accelerate your transformation with Flex elite coaches. Select a trainer, send an enrollment request, and kickstart your custom fitness regime.
                         </p>
                     </div>
                 </div>

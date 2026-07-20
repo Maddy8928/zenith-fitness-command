@@ -232,7 +232,7 @@ export const formatDisplayDate = (isoStr: string): string => {
     }
 };
 
-const STORAGE_KEY = 'nexus_gym_receptionist_transactions';
+const STORAGE_KEY = 'flex_gym_receptionist_transactions';
 
 export const getStoredTransactions = (): Transaction[] => {
     if (typeof window === 'undefined') {

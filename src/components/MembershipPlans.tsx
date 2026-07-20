@@ -19,10 +19,10 @@ const PLANS = [
     },
     {
         id: 'pro',
-        name: 'Nexus Evolution',
+        name: 'Flex Evolution',
         price: '₹12,499',
         billing: '/month',
-        description: 'The complete Nexus experience with premium amenities and AI guidance.',
+        description: 'The complete Flex experience with premium amenities and AI guidance.',
         features: ['Everything in Standard', 'Unlimited Elite Classes', 'Precision AI Body Scans', 'Premium Spa & Recovery', '2 Guest passes/month'],
         cardClass: 'border-primary dark:border-primary/50 bg-white dark:bg-charcoal/50 scale-105 shadow-[0_0_40px_hsl(var(--gold)/0.15)] dark:shadow-[0_0_40px_hsl(var(--gold)/0.1)]',
         buttonClass: 'bg-primary text-slate-900 hover:brightness-110 font-bold',
@@ -32,7 +32,7 @@ const PLANS = [
     },
     {
         id: 'ultimate',
-        name: 'Nexus VIP',
+        name: 'Flex VIP',
         price: '₹24,999',
         billing: '/month',
         description: 'Complete optimization with dedicated coaching.',
