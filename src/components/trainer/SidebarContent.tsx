@@ -39,8 +39,7 @@ const navItems = [
     { label: 'Diet Plans', href: '/trainer/diet-plans', icon: Flame },
     { label: 'My Members', href: '/trainer/members', icon: Users },
     { label: 'Trainer Capacity', href: '/trainer/capacity', icon: UserCheck },
-    { label: 'Member Alerts & Trial Bookings', href: '/trainer/member-alerts', icon: Bell },
-    { label: 'Messages', href: '/trainer/messages', icon: MessageSquare },
+    { label: 'Member Alerts & Trials', href: '/trainer/member-alerts', icon: Bell },
     { label: 'Wellness Bookings', href: '/trainer/members/bookings', icon: Waves },
     { label: 'Attendance', href: '/trainer/attendance', icon: Clock },
     { label: 'HYROX Management', href: '/trainer/hyrox', icon: Trophy },
@@ -179,18 +178,18 @@ export default function SidebarContent({ onItemClick, variant = 'sidebar' }: Sid
                                             ? 'px-4 py-3.5 rounded-2xl'
                                             : 'px-3 py-3 rounded-xl'
                                     } ${isActive
-                                        ? 'bg-accent/15 text-accent dark:text-neon-cyan dark:bg-accent/15 font-bold'
+                                        ? 'bg-blue-500/15 text-cyan-400 font-bold'
                                         : 'text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground'
                                     }`}
                                 >
                                     {/* Active Shine */}
                                     {isActive && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent dark:bg-neon-cyan rounded-r-md shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
+                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-400 rounded-r-md shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
                                     )}
                                     <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                                    <span className={`font-body text-sm tracking-widest font-bold flex-1 ${variant === 'bottom-sheet' ? 'uppercase' : 'normal-case'}`}>{item.label}</span>
-                                    {item.label === 'Member Alerts & Trial Bookings' && unreadTrainerCount > 0 && (
-                                        <span className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-lg shadow-cyan-900/20 animate-pulse relative z-10 shrink-0">
+                                    <span className={`font-body text-xs sm:text-sm tracking-wider font-bold flex-1 whitespace-nowrap truncate ${variant === 'bottom-sheet' ? 'uppercase' : 'normal-case'}`}>{item.label}</span>
+                                    {item.href === '/trainer/member-alerts' && unreadTrainerCount > 0 && (
+                                        <span className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-cyan-900/20 animate-pulse relative z-10 shrink-0">
                                             {unreadTrainerCount}
                                         </span>
                                     )}

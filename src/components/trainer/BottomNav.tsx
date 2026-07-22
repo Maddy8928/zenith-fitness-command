@@ -57,7 +57,7 @@ export default function TrainerBottomNav({ onMoreClick }: BottomNavProps = {}) {
                         href={item.href || '#'}
                         className={`flex flex-col items-center justify-center flex-1 h-full py-2 relative transition-all duration-300 ${
                             isActive
-                                ? 'text-accent dark:text-neon-cyan scale-105 font-bold'
+                                ? 'text-cyan-400 scale-105 font-bold'
                                 : 'text-slate-500 dark:text-muted-foreground hover:text-slate-300 hover:text-foreground'
                         }`}
                     >
@@ -71,7 +71,7 @@ export default function TrainerBottomNav({ onMoreClick }: BottomNavProps = {}) {
                         </div>
                         <span className="text-[10px] font-semibold tracking-wider mt-1">{item.label}</span>
                         {isActive && (
-                            <div className="absolute bottom-1 w-5 h-0.5 bg-accent dark:bg-neon-cyan rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                            <div className="absolute bottom-1 w-5 h-0.5 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
                         )}
                     </Link>
                 );

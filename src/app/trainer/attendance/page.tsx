@@ -32,6 +32,19 @@ export default function AttendancePanel() {
         }
     }, [isAuthenticated, user, router, isLoading]);
 
+    const [sessions, setSessions] = useState([
+        { id: 1, clientName: 'Jessica Miller', time: '07:00 AM', duration: '60 min', type: 'Strength Training', status: 'Present', avatar: 'JM' },
+        { id: 2, clientName: 'David Garcia', time: '09:30 AM', duration: '45 min', type: 'Cardio Core', status: 'Upcoming', avatar: 'DG' },
+        { id: 3, clientName: 'Alex Thompson', time: '11:00 AM', duration: '60 min', type: 'HIIT Session', status: 'Upcoming', avatar: 'AT' },
+        { id: 4, clientName: 'Sarah Johnson', time: '02:00 PM', duration: '30 min', type: 'Form Assessment', status: 'Upcoming', avatar: 'SJ' },
+        { id: 5, clientName: 'Michael Chen', time: '04:30 PM', duration: '60 min', type: 'Powerlifting', status: 'Rescheduled', avatar: 'MC' },
+        { id: 6, clientName: 'Lisa Anderson', time: '06:00 PM', duration: '45 min', type: 'Flexibility & Yoga', status: 'Absent', avatar: 'LA' },
+    ]);
+
+    const updateStatus = (id: number, newStatus: string) => {
+        setSessions(sessions.map(s => s.id === id ? { ...s, status: newStatus } : s));
+    };
+
     if (isLoading || !isAuthenticated || (user?.role !== 'TRAINER' && user?.role !== 'ADMIN')) {
         return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Attendance Data...</div>;
     }
@@ -59,20 +72,6 @@ export default function AttendancePanel() {
 
     const handleToday = () => {
         setCurrentDate(new Date());
-    };
-
-    // Mock data for sessions
-    const [sessions, setSessions] = useState([
-        { id: 1, clientName: 'Jessica Miller', time: '07:00 AM', duration: '60 min', type: 'Strength Training', status: 'Present', avatar: 'JM' },
-        { id: 2, clientName: 'David Garcia', time: '09:30 AM', duration: '45 min', type: 'Cardio Core', status: 'Upcoming', avatar: 'DG' },
-        { id: 3, clientName: 'Alex Thompson', time: '11:00 AM', duration: '60 min', type: 'HIIT Session', status: 'Upcoming', avatar: 'AT' },
-        { id: 4, clientName: 'Sarah Johnson', time: '02:00 PM', duration: '30 min', type: 'Form Assessment', status: 'Upcoming', avatar: 'SJ' },
-        { id: 5, clientName: 'Michael Chen', time: '04:30 PM', duration: '60 min', type: 'Powerlifting', status: 'Rescheduled', avatar: 'MC' },
-        { id: 6, clientName: 'Lisa Anderson', time: '06:00 PM', duration: '45 min', type: 'Flexibility & Yoga', status: 'Absent', avatar: 'LA' },
-    ]);
-
-    const updateStatus = (id: number, newStatus: string) => {
-        setSessions(sessions.map(s => s.id === id ? { ...s, status: newStatus } : s));
     };
 
     const stats = {

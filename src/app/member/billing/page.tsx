@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useNotifications } from "@/context/NotificationContext";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { autoAssignMemberToTrainer } from '@/lib/trainer-members-store';
 
 // --- MOCK DATA ---
 const ACTIVE_PLAN = {
@@ -442,7 +443,28 @@ export default function MemberBillingPage() {
             setSavedInvoices(updatedInvoices);
         } catch (e) {}
 
+        // Auto-assign member to trainer in store
+        autoAssignMemberToTrainer({
+            memberId: currentUser?.id || '3',
+            memberName: currentUser?.name || 'Alex Reynolds',
+            memberEmail: currentUser?.email || 'member@flexgym.com',
+            trainerId: trainerId,
+            trainerName: trainerName,
+        });
+
         // 5. Send notifications
+        // Trainer
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '🎉 New Personal Training Client Assigned',
+            message: `${currentUser?.name || 'Alex'} has completed Personal Training enrollment and has been automatically assigned to your roster in 'New Members'.`,
+            actionLabel: 'View My Members',
+            actionUrl: '/trainer/members',
+            metadata: { memberEmail: currentUser?.email, trainerId: trainerId }
+        });
+
         // Member
         addNotification({
             role: 'member',

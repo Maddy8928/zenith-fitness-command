@@ -253,7 +253,7 @@ export default function MemberAlertsPage() {
         });
 
         // 2. Get trial requests from localStorage
-        let localRequests: UnifiedTrialRequest[] = [];
+        const localRequests: UnifiedTrialRequest[] = [];
         try {
             const savedTrials = localStorage.getItem('zenith_trainer_trials');
             if (savedTrials) {

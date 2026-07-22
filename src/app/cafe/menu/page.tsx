@@ -112,7 +112,7 @@ export default function CafeMenuPage() {
         const updatedItems = menuItems.map(item => {
             if (!selectedItemIds.includes(item.id)) return item;
             
-            let updatedItem = { ...item };
+            const updatedItem = { ...item };
             switch (bulkActionField) {
                 case 'price': {
                     if (bulkActionValue.endsWith('%')) {

@@ -73,10 +73,10 @@ export default function SmartInventoryPage() {
         const timer = setTimeout(() => {
             const now = Date.now();
             let inventoryUpdated = false;
-            let newOrders = { ...orderingItems };
+            const newOrders = { ...orderingItems };
             let updatedInv = [...inventory];
-            let newNotified = { ...notifiedItems };
-            let notificationsToSend: any[] = [];
+            const newNotified = { ...notifiedItems };
+            const notificationsToSend: any[] = [];
             
             Object.entries(newOrders).forEach(([id, orderTime]) => {
                 if (now - orderTime > 8000) {
@@ -125,9 +125,9 @@ export default function SmartInventoryPage() {
     useEffect(() => {
         const timer = setTimeout(() => {
             let saleMade = false;
-            let notificationsToSend: any[] = [];
-            let updatedNotifiedItems = { ...notifiedItems };
-            let newOrders: Record<string, number> = {};
+            const notificationsToSend: any[] = [];
+            const updatedNotifiedItems = { ...notifiedItems };
+            const newOrders: Record<string, number> = {};
 
             const nextInventory = inventory.map(item => {
                 const isOrdering = !!orderingItems[item.id];

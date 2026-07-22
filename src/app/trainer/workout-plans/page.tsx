@@ -38,14 +38,14 @@ export default function WorkoutPlansPanel() {
     const [searchQuery, setSearchQuery] = useState('');
 
 
-    const handleAssign = (plan: any) => {
+    const handleAssign = (plan: { title: string; target: string; duration: string; level: string; exercises: Array<{ name: string; sets: number; reps: string; rest: string }> }) => {
         // Map trainer plan format to member plan format
         const formattedPlan: WorkoutPlan = {
             name: plan.title,
             focus: plan.target,
             duration: plan.duration,
             intensity: plan.level === 'Advanced' ? 'High' : (plan.level === 'Intermediate' ? 'Moderate' : 'Low'),
-            exercises: plan.exercises.map((ex: any, idx: number) => ({
+            exercises: plan.exercises.map((ex: { name: string; sets: number; reps: string; rest: string }, idx: number) => ({
                 id: String(idx + 1),
                 name: ex.name,
                 target: plan.target, // Fallback target

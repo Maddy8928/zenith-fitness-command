@@ -141,7 +141,7 @@ export default function CafeInventoryPage() {
         const updatedInventory = inventory.map(item => {
             if (!selectedItemIds.includes(item.id)) return item;
             
-            let updatedItem = { ...item };
+            const updatedItem = { ...item };
             switch (bulkActionField) {
                 case 'price': {
                     if (bulkActionValue.endsWith('%')) {
@@ -348,11 +348,11 @@ export default function CafeInventoryPage() {
         const timer = setTimeout(() => {
             const now = Date.now();
             let inventoryUpdated = false;
-            let newOrders = { ...orderingItems };
+            const newOrders = { ...orderingItems };
             let updatedInv = [...inventory];
-            let newNotified = { ...notifiedItems };
-            let notificationsToSend: any[] = [];
-            let newLogs: any[] = [];
+            const newNotified = { ...notifiedItems };
+            const notificationsToSend: any[] = [];
+            const newLogs: any[] = [];
             
             Object.entries(newOrders).forEach(([id, orderTime]) => {
                 if (now - orderTime > 8000) {
@@ -416,10 +416,10 @@ export default function CafeInventoryPage() {
     useEffect(() => {
         const timer = setTimeout(() => {
             let usageMade = false;
-            let notificationsToSend: any[] = [];
-            let updatedNotifiedItems = { ...notifiedItems };
-            let newOrders: Record<string, number> = {};
-            let newLogs: any[] = [];
+            const notificationsToSend: any[] = [];
+            const updatedNotifiedItems = { ...notifiedItems };
+            const newOrders: Record<string, number> = {};
+            const newLogs: any[] = [];
 
             const nextInventory = inventory.map(item => {
                 const isOrdering = !!orderingItems[item.id];
