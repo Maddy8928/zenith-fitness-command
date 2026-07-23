@@ -164,6 +164,30 @@ export default function LoginPage() {
                                     <Shield className="w-3.5 h-3.5" />
                                     Admin
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('RECEPTIONIST', 'receptionist@flexgym.com')}
+                                    className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${selectedRole === 'RECEPTIONIST' ? 'bg-amber-500/20 border-amber-500 text-amber-400' : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'}`}
+                                >
+                                    <User className="w-3.5 h-3.5" />
+                                    Reception
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('CAFE_WORKER', 'cafe@flexgym.com')}
+                                    className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${selectedRole === 'CAFE_WORKER' ? 'bg-orange-500/20 border-orange-500 text-orange-400' : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'}`}
+                                >
+                                    <Coffee className="w-3.5 h-3.5" />
+                                    Cafe
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickLogin('STORE_MANAGER', 'store@flexgym.com')}
+                                    className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${selectedRole === 'STORE_MANAGER' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'}`}
+                                >
+                                    <Store className="w-3.5 h-3.5" />
+                                    Store
+                                </button>
                             </div>
                         </div>
 
