@@ -1,158 +1,213 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/context/AuthContext";
-import { Users, UserCheck, DollarSign, Activity, TrendingUp, Search, MoreVertical, ArrowUpRight, ArrowDownRight, CalendarDays, Lock, Waves } from "lucide-react";
+import React from "react";
+import { 
+    Users, UserCheck, IndianRupee, Activity, Clock, FileText,
+    ArrowUpRight, ArrowDownRight
+} from "lucide-react";
+import { motion } from "framer-motion";
 import RevenueOverview from "@/components/admin/RevenueOverview";
+import MembershipOverview from "@/components/admin/MembershipOverview";
+import RecentActivity from "@/components/admin/RecentActivity";
 
-const kpiData = [
+interface KPICardData {
+    title: string;
+    value: string;
+    trend: string;
+    isPositive?: boolean;
+    icon: React.ElementType;
+    color: 'gold' | 'emerald' | 'cyan' | 'green' | 'amber' | 'indigo';
+}
+
+const kpiData: KPICardData[] = [
     {
-        title: "Total Members",
-        value: "3,248",
-        trend: "+12%",
+        title: "Total Active Members",
+        value: "2,845",
+        trend: "+12% vs last month",
         isPositive: true,
         icon: Users,
-        color: "text-primary dark:text-gold-glow",
-        bg: "bg-primary/10 dark:bg-gold-glow/10"
+        color: "gold"
     },
     {
-        title: "Active Trainers",
-        value: "42",
-        trend: "+3",
+        title: "Today's Check-ins",
+        value: "428",
+        trend: "+18% vs yesterday",
         isPositive: true,
         icon: UserCheck,
-        color: "text-accent dark:text-neon-cyan",
-        bg: "bg-accent/10 dark:bg-neon-cyan/10"
+        color: "emerald"
     },
     {
-        title: "Monthly Revenue",
-        value: "₹21.50 Lakh",
-        trend: "+15.4%",
+        title: "Members Currently Inside the Gym",
+        value: "64",
+        trend: "Live peak capacity",
         isPositive: true,
-        icon: DollarSign,
-        color: "text-green-500",
-        bg: "bg-green-500/10"
+        icon: Activity,
+        color: "cyan"
     },
     {
-        title: "Wellness Utilization",
-        value: "84.2%",
-        trend: "+5.4%",
+        title: "Today's Revenue",
+        value: "₹68,500",
+        trend: "+14.2% vs yesterday",
         isPositive: true,
-        icon: Waves,
-        color: "text-cyan-500",
-        bg: "bg-cyan-500/10"
+        icon: IndianRupee,
+        color: "green"
+    },
+    {
+        title: "Expiring Memberships",
+        value: "18",
+        trend: "Within 7 days",
+        isPositive: false,
+        icon: Clock,
+        color: "amber"
+    },
+    {
+        title: "Pending Requests",
+        value: "7",
+        trend: "3 Transfers · 4 PT Requests",
+        isPositive: false,
+        icon: FileText,
+        color: "indigo"
     }
 ];
 
-const recentSignups = [
-    { id: "M-1024", name: "Alex Johnson", plan: "Elite Annual", date: "Today, 09:45 AM", status: "Active" },
-    { id: "M-1023", name: "Sarah Williams", plan: "Pro Monthly", date: "Today, 08:30 AM", status: "Active" },
-    { id: "M-1022", name: "Michael Chen", plan: "Starter Monthly", date: "Yesterday", status: "Pending" },
-    { id: "M-1021", name: "Emma Davis", plan: "Pro Monthly", date: "Yesterday", status: "Active" },
-];
-
-const getStatusColor = (status: string) => {
-    switch (status) {
-        case "Active": return "bg-green-500/10 text-green-500 border-green-500/20";
-        case "Pending": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-        default: return "bg-primary/10 text-primary border-primary/20";
+const colorStyles: Record<KPICardData['color'], {
+    iconBg: string;
+    badgeBg: string;
+    glowColor: string;
+}> = {
+    gold: {
+        iconBg: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+        badgeBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+        glowColor: "hsl(45 95% 55% / 0.12)"
+    },
+    emerald: {
+        iconBg: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+        badgeBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+        glowColor: "hsl(160 84% 39% / 0.12)"
+    },
+    cyan: {
+        iconBg: "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20",
+        badgeBg: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+        glowColor: "hsl(190 95% 50% / 0.12)"
+    },
+    green: {
+        iconBg: "bg-green-500/10 text-green-400 border border-green-500/20",
+        badgeBg: "bg-green-500/10 text-green-400 border-green-500/20",
+        glowColor: "hsl(142 71% 45% / 0.12)"
+    },
+    amber: {
+        iconBg: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+        badgeBg: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+        glowColor: "hsl(38 92% 50% / 0.12)"
+    },
+    indigo: {
+        iconBg: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
+        badgeBg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+        glowColor: "hsl(239 84% 67% / 0.12)"
     }
 };
 
 export default function AdminDashboard() {
-    const { user } = useAuth();
-    const isReceptionist = user?.role === 'RECEPTIONIST';
-
-    const visibleKpis = isReceptionist ? kpiData.filter(kpi => kpi.title !== 'Monthly Revenue') : kpiData;
-
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Page Header */}
+            {/* Page Header - Minimal, Clean & Executive Focused */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-heading font-bold tracking-tight text-foreground dark:text-white">Dashboard Overview</h1>
-                    <p className="text-sm text-muted-foreground mt-1">Monitor gym performance, attendance, and revenue.</p>
+                    <h1 className="text-3xl font-heading font-bold tracking-tight text-foreground dark:text-white">
+                        Executive Command Center
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        High-level business operations, live check-ins, and financial overview.
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-primary text-primary-foreground font-semibold text-sm shadow-glow hover:shadow-glow/80 transition-all hover:-translate-y-0.5">
-                        <CalendarDays className="w-4 h-4" />
-                        View Schedule
-                    </button>
+                    {/* Live Executive Status Indicator (No Quick Actions or Shortcuts) */}
+                    <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-background/60 backdrop-blur-md border border-primary/10 shadow-sm">
+                        <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                        </span>
+                        <span className="text-xs font-heading font-bold text-foreground dark:text-white uppercase tracking-wider">
+                            Live Operations
+                        </span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="text-xs text-muted-foreground font-mono">
+                            {new Date().toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            })}
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            {/* KPI Cards */}
-            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${isReceptionist ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
-                {visibleKpis.map((kpi, idx) => {
+            {/* Top Overview Cards - 6 Premium KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {kpiData.map((kpi, idx) => {
                     const Icon = kpi.icon;
+                    const styles = colorStyles[kpi.color];
+
                     return (
-                        <div key={idx} className="glass-card rounded-2xl p-6 group transition-all duration-300 hover:border-primary/40 relative overflow-hidden">
-                            {/* Decorative glow */}
-                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[radial-gradient(circle,_hsl(var(--gold)/0.1),_transparent_70%)] rounded-full blur-xl group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
+                        <motion.div
+                            key={kpi.title}
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.07, duration: 0.4 }}
+                            className="glass-card rounded-3xl p-6 group transition-all duration-500 hover:border-primary/40 relative overflow-hidden shadow-soft flex flex-col justify-between"
+                        >
+                            {/* Decorative Radial Glow */}
+                            <div
+                                className="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"
+                                style={{ background: `radial-gradient(circle, ${styles.glowColor}, transparent 70%)` }}
+                            />
 
-                            <div className="flex justify-between items-start mb-4">
-                                <div className={`p-3 rounded-xl ${kpi.bg}`}>
-                                    <Icon className={`w-5 h-5 ${kpi.color}`} />
+                            <div className="flex justify-between items-start mb-5 relative z-10">
+                                <div className={`p-3 rounded-2xl ${styles.iconBg}`}>
+                                    <Icon className="w-5 h-5" />
                                 </div>
-                                <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${kpi.isPositive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                                    {kpi.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                    {kpi.trend}
+                                <div
+                                    className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${
+                                        kpi.isPositive
+                                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                    }`}
+                                >
+                                    {kpi.isPositive ? <ArrowUpRight className="w-3 h-3 shrink-0" /> : <ArrowDownRight className="w-3 h-3 shrink-0" />}
+                                    <span>{kpi.trend}</span>
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 className="text-sm font-medium text-muted-foreground mb-1">{kpi.title}</h3>
-                                <p className="text-3xl font-heading font-bold text-foreground dark:text-white tracking-tight">{kpi.value}</p>
+                            <div className="relative z-10">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">
+                                    {kpi.title}
+                                </h3>
+                                <p className="text-3xl font-heading font-bold text-foreground dark:text-white tracking-tight">
+                                    {kpi.value}
+                                </p>
                             </div>
-                        </div>
+                        </motion.div>
                     );
                 })}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Revenue Overview Area */}
-                <div className="lg:col-span-2">
-                    {isReceptionist ? (
-                        <div className="glass-card rounded-3xl border border-primary/10 p-12 flex flex-col items-center justify-center min-h-[400px]">
-                            <Lock className="w-12 h-12 text-slate-500 mb-4 opacity-50" />
-                            <p className="text-slate-400 text-sm font-black uppercase tracking-widest">Access Restricted</p>
-                            <p className="text-xs text-slate-500 mt-2 text-center max-w-[240px]">You do not have permission to view financial analytics.</p>
-                        </div>
-                    ) : (
-                        <RevenueOverview />
-                    )}
+            {/* Revenue Overview & Membership Overview Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                {/* Revenue Overview Component - Col Span 7 */}
+                <div className="lg:col-span-7 flex flex-col">
+                    <RevenueOverview />
                 </div>
 
-                {/* Recent Signups */}
-                <div className="glass-card rounded-3xl border border-primary/10 overflow-hidden shadow-soft flex flex-col">
-                    <div className="p-6 border-b border-primary/10 flex justify-between items-center bg-charcoal/30 dark:bg-black/20">
-                        <h2 className="text-lg font-heading font-semibold text-foreground">Recent Signups</h2>
-                        <button className="text-sm text-primary dark:text-gold-glow hover:underline transition-all">View All</button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto">
-                        <div className="divide-y divide-primary/5">
-                            {recentSignups.map((member) => (
-                                <div key={member.id} className="p-5 flex items-center justify-between hover:bg-primary/[0.02] dark:hover:bg-white/[0.02] transition-colors group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                            {member.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-sm text-foreground dark:text-white">{member.name}</p>
-                                            <p className="text-xs text-muted-foreground">{member.plan}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className={`px-2 py-0.5 rounded text-[10px] font-semibold mb-1 inline-block ${getStatusColor(member.status)}`}>
-                                            {member.status}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground block">{member.date}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                {/* Membership Overview Component - Col Span 5 */}
+                <div className="lg:col-span-5 flex flex-col">
+                    <MembershipOverview />
                 </div>
+            </div>
+
+            {/* Recent Activity Section - Replaces Recent Signups */}
+            <div className="pt-2">
+                <RecentActivity />
             </div>
         </div>
     );
