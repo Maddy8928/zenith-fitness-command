@@ -11,7 +11,6 @@ const navItems = [
     { label: 'Alerts & Bookings', href: '/member/alerts', icon: BellRing, showBadge: true },
     { label: 'My Workouts', href: '/member/plans', icon: ClipboardList, showLock: true },
     { label: 'Classes', href: '/member/schedule', icon: CalendarDays },
-    { label: 'Trainer Trial', href: '/member/trainer-trial', icon: Dumbbell },
     { label: 'HYROX Training', href: '/member/hyrox', icon: Trophy },
     { label: 'Progress', href: '/member/progress', icon: Activity },
     { label: 'Store', href: '/member/store', icon: ShoppingBag },

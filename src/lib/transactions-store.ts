@@ -4,11 +4,38 @@ export interface Transaction {
     amount: number;
     desc: string; // Description / Purpose
     date: string; // Formatted display date (e.g., "Today, 10:45 AM")
-    status: 'Completed' | 'Pending' | 'Failed';
-    method: 'Cash' | 'UPI' | 'Credit/Debit Card' | 'Bank Transfer' | 'Other';
+    status: 'Completed' | 'Pending' | 'Failed' | 'Paid' | 'Partially Paid' | 'Installment';
+    method: 'Cash' | 'UPI' | 'Credit/Debit Card' | 'Bank Transfer' | 'One-Time Payment' | 'Installment Payment' | 'Other';
     source: 'Memberships' | 'Personal Training' | 'Classes' | 'HYROX' | 'Product Sales';
     receptionist: string; // Who collected it
     rawDate: string; // ISO date string
+    // Extended Finance Integration fields
+    originalPrice?: number;
+    discountPercentage?: number;
+    discountAmount?: number;
+    finalPayableAmount?: number;
+    promoOffer?: {
+        id: string;
+        name: string;
+        discountPercent: number;
+    };
+    upiTransactionId?: string;
+    installmentDetails?: {
+        installment1Amount: number;
+        installment1Date: string;
+        installment2Amount: number;
+        dueDate: string;
+        remainingBalance: number;
+        completed: boolean;
+    };
+    outstandingBalance?: number;
+    paymentStatus?: 'Paid' | 'Partially Paid' | 'Pending';
+    paymentHistory?: Array<{
+        amount: number;
+        date: string;
+        method: string;
+        note?: string;
+    }>;
 }
 
 export const getInitialTransactions = (): Transaction[] => {
@@ -71,13 +98,27 @@ export const getInitialTransactions = (): Transaction[] => {
         {
             id: 'TRX-10138',
             name: 'James Thompson',
-            amount: 12499,
-            desc: 'Premium Plan (Monthly)',
+            amount: 6000,
+            desc: 'Premium Plan (Installment 1 of 2)',
             rawDate: relativeDate(1, 4, 20), // yesterday
-            status: 'Pending',
-            method: 'Bank Transfer',
+            status: 'Partially Paid',
+            method: 'Installment Payment',
             source: 'Memberships',
-            receptionist: 'Sarah Jenkins'
+            receptionist: 'Sarah Jenkins',
+            originalPrice: 12499,
+            discountPercentage: 0,
+            discountAmount: 0,
+            finalPayableAmount: 12499,
+            installmentDetails: {
+                installment1Amount: 6000,
+                installment1Date: relativeDate(1, 4, 20).split('T')[0],
+                installment2Amount: 6499,
+                dueDate: relativeDate(-14).split('T')[0],
+                remainingBalance: 6499,
+                completed: false
+            },
+            outstandingBalance: 6499,
+            paymentStatus: 'Partially Paid'
         },
         {
             id: 'TRX-10137',
@@ -104,14 +145,27 @@ export const getInitialTransactions = (): Transaction[] => {
         {
             id: 'TRX-10135',
             name: 'Sophia Martinez',
-            amount: 21000,
-            desc: 'Annual Locker Rental',
-            rawDate: relativeDate(4, 9, 30), // 4 days ago
-            status: 'Completed',
-            method: 'Visa •••• 9012', // Map to other
-            rawMethod: 'Bank Transfer', // We'll map to Bank Transfer
+            amount: 3749,
+            desc: 'Standard Plan (Installment 1 of 2)',
+            rawDate: relativeDate(3, 8, 30), // 3 days ago
+            status: 'Partially Paid',
+            method: 'Installment Payment',
             source: 'Memberships',
-            receptionist: 'Sarah Jenkins'
+            receptionist: 'Sarah Jenkins',
+            originalPrice: 7499,
+            discountPercentage: 0,
+            discountAmount: 0,
+            finalPayableAmount: 7499,
+            installmentDetails: {
+                installment1Amount: 3749,
+                installment1Date: relativeDate(3, 8, 30).split('T')[0],
+                installment2Amount: 3750,
+                dueDate: relativeDate(-14).split('T')[0],
+                remainingBalance: 3750,
+                completed: false
+            },
+            outstandingBalance: 3750,
+            paymentStatus: 'Partially Paid'
         },
         {
             id: 'TRX-10134',
@@ -281,4 +335,74 @@ export const addTransaction = (
     const updated = [newTx, ...transactions];
     saveStoredTransactions(updated);
     return newTx;
+};
+
+export const settleSecondInstallment = (
+    transactionId: string,
+    receptionistName: string = 'Sarah Jenkins'
+): { success: boolean; settledAmount: number; error?: string } => {
+    const transactions = getStoredTransactions();
+    const index = transactions.findIndex(t => t.id === transactionId);
+    if (index === -1) {
+        return { success: false, settledAmount: 0, error: 'Transaction not found' };
+    }
+
+    const tx = transactions[index];
+    const outstanding = tx.outstandingBalance || 0;
+    if (outstanding <= 0 && tx.paymentStatus === 'Paid') {
+        return { success: false, settledAmount: 0, error: 'Installment schedule is already fully paid.' };
+    }
+
+    const nowIso = new Date().toISOString();
+    const settledAmount = outstanding;
+
+    const updatedTx: Transaction = {
+        ...tx,
+        amount: (tx.finalPayableAmount || tx.amount + settledAmount),
+        status: 'Completed',
+        paymentStatus: 'Paid',
+        outstandingBalance: 0,
+        installmentDetails: tx.installmentDetails
+            ? {
+                ...tx.installmentDetails,
+                remainingBalance: 0,
+                completed: true
+            }
+            : undefined,
+        paymentHistory: [
+            ...(tx.paymentHistory || []),
+            {
+                amount: settledAmount,
+                date: nowIso,
+                method: 'Installment 2 Settlement',
+                note: 'Completed 2nd installment settlement'
+            }
+        ]
+    };
+
+    // Replace in transactions array
+    transactions[index] = updatedTx;
+
+    // Also record a new inflow transaction for the 2nd installment amount in Finance module
+    const secondInstallmentTx: Transaction = {
+        id: `TRX-${10143 + transactions.length}`,
+        name: tx.name,
+        amount: settledAmount,
+        desc: `2nd Installment Settlement (${tx.desc})`,
+        status: 'Completed',
+        paymentStatus: 'Paid',
+        method: 'Cash',
+        source: 'Memberships',
+        receptionist: receptionistName,
+        rawDate: nowIso,
+        date: formatDisplayDate(nowIso),
+        originalPrice: tx.originalPrice,
+        finalPayableAmount: tx.finalPayableAmount,
+        outstandingBalance: 0
+    };
+
+    const newTransactions = [secondInstallmentTx, ...transactions];
+    saveStoredTransactions(newTransactions);
+
+    return { success: true, settledAmount };
 };

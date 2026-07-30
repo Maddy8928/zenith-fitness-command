@@ -63,8 +63,15 @@ export default function TopNav({ onMenuTrigger }: TopNavProps = {}) {
 
     return (
         <header className="h-20 flex-shrink-0 flex items-center justify-between px-4 sm:px-8 bg-background/50 backdrop-blur-md border-b border-slate-200 dark:border-primary/20 sticky top-0 z-40">
-            {/* Left Side - Search Bar */}
+            {/* Left Side - Search Bar & Mobile Menu */}
             <div className="flex items-center gap-4 flex-1">
+                <button
+                    onClick={onMenuTrigger}
+                    className="p-2 rounded-xl lg:hidden hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground outline-none"
+                    aria-label="Open Sidebar Menu"
+                >
+                    <Menu className="w-6 h-6" />
+                </button>
 
                 <div className="relative w-full max-w-md group hidden md:block">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">

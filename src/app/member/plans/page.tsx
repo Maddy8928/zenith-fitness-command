@@ -25,7 +25,15 @@ import {
     UserCheck,
     CreditCard,
     Unlock,
-    Check
+    Check,
+    Users,
+    Shield,
+    Award,
+    CalendarCheck,
+    Sparkles,
+    AlertCircle,
+    XCircle,
+    Loader2
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -33,8 +41,75 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { useNotifications } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
+import {
+    getTrainerCapacity,
+    CAPACITY_STORAGE_KEY,
+    type TrainerCapacity,
+} from '@/lib/trainer-capacity-store';
 
 import { usePlan } from '@/context/PlanContext';
+
+const TRAINERS = [
+    {
+        id: 'marcus-johnson',
+        name: 'Marcus Johnson',
+        role: 'Head of Strength & Conditioning',
+        bio: 'Former Olympic weightlifter with 12+ years of experience specialized in functional hypertrophy and raw power development.',
+        longBio: 'Marcus has spent over a decade training elite athletes and everyday fitness enthusiasts alike. Having competed at national levels in Olympic weightlifting, he brings a scientific yet practical approach to raw power development, barbell mechanics, and muscle hypertrophy. He believes in building a resilient foundation first.',
+        image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=800&auto=format&fit=crop',
+        icon: Dumbbell,
+        specialties: ['Powerlifting', 'Strength Training', 'Bodybuilding'],
+        certifications: ['CSCS (Certified Strength & Conditioning Specialist)', 'USAW Level 2 Coach', 'Precision Nutrition L1'],
+        rating: 4.9,
+        experience: '12+ Years',
+        price: '₹9,999/month',
+        trainingGoals: ['Hypertrophy', 'Max Strength', 'Competition Prep', 'Athletic Conditioning'],
+        availability: 'Mon - Sat (09:00 AM - 06:00 PM)'
+    },
+    {
+        id: 'sarah-chen',
+        name: 'Sarah Chen',
+        role: 'HIIT Specialist',
+        bio: 'Sarah combines high-intensity interval training with functional movements. Her classes are known for explosive energy and rapid conditioning.',
+        longBio: 'Sarah is a high-energy conditioning specialist who focuses on cardiovascular capacity, speed, and endurance. With a background in track & field, she designs fat-burning, high-tempo workouts that challenge your mental toughness and physique. Her sessions are intense, dynamic, and result-driven.',
+        image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800&auto=format&fit=crop',
+        icon: Activity,
+        specialties: ['HIIT', 'Cardio Conditioning', 'Core Strength'],
+        certifications: ['NASM CPT (Certified Personal Trainer)', 'FMS Level 1 (Functional Movement Screen)', 'HIIT Performance Certificate'],
+        rating: 4.8,
+        experience: '8 Years',
+        price: '₹9,999/month',
+        trainingGoals: ['Fat Loss', 'Endurance & Stamina', 'Agility Training', 'Metabolic Conditioning'],
+        availability: 'Mon - Fri (07:00 AM - 04:00 PM)'
+    },
+    {
+        id: 'michael-rivers',
+        name: 'Michael Rivers',
+        role: 'Recovery & Mobility Specialist',
+        bio: 'Former physical therapist assistant specializing in injury prevention, joint mobility, and athletic recovery protocols.',
+        longBio: 'Michael believes that longevity is the key to fitness. With professional experience in orthopedic recovery, he coaches body awareness, myofascial release, joint mobility, and posture correction. Whether you are recovering from an injury or trying to enhance movement efficiency, Michael provides a custom recovery approach.',
+        image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop',
+        icon: Shield,
+        specialties: ['Mobility', 'Injury Prevention', 'Active Recovery'],
+        certifications: ['PTA (Physical Therapist Assistant)', 'FRCms (Functional Range Conditioning)', 'TriggerPoint Therapy L2'],
+        rating: 4.9,
+        experience: '10 Years',
+        price: '₹9,999/month',
+        trainingGoals: ['Rehab & Prehab', 'Joint Mobility', 'Postural Correction', 'Longevity Fitness'],
+        availability: 'Tue - Sun (10:00 AM - 07:00 PM)'
+    }
+];
+
+const ONBOARDING_STEPS = [
+    { id: 1, label: 'Choose Trainer', description: 'Trainer Trial or Direct Hire', icon: UserCheck },
+    { id: 2, label: 'Trainer Approval', description: 'Waiting for Approval', icon: Clock },
+    { id: 3, label: 'Payment', description: 'Complete PT Package', icon: CreditCard },
+    { id: 4, label: 'Personal Training Active', description: 'Workouts Unlocked', icon: Unlock },
+];
 
 const TRAINERS_INFO = {
     'marcus-johnson': {
@@ -42,66 +117,212 @@ const TRAINERS_INFO = {
         role: 'Head of Strength & Conditioning',
         specialties: ['Powerlifting', 'Strength Training', 'Bodybuilding'],
         experience: '12+ Years',
-        image: 'https://images.unsplash.com/photo-1567013127542-490d757e51fc?q=80&w=800&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=800&auto=format&fit=crop',
     },
     'sarah-chen': {
         name: 'Sarah Chen',
         role: 'HIIT Specialist',
         specialties: ['HIIT', 'Cardio Conditioning', 'Core Strength'],
         experience: '8 Years',
-        image: 'https://images.unsplash.com/photo-1611566026373-c6c8dab0f909?q=80&w=1587&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800&auto=format&fit=crop',
     },
     'michael-rivers': {
         name: 'Michael Rivers',
         role: 'Recovery & Mobility Specialist',
         specialties: ['Mobility', 'Injury Prevention', 'Active Recovery'],
         experience: '10 Years',
-        image: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=1587&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800&auto=format&fit=crop',
     }
 };
 
-const formatDate = (isoStr: string) => {
-    if (!isoStr) return '';
-    try {
-        const date = new Date(isoStr);
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    } catch (e) {
-        return '';
-    }
+const EXERCISE_INSTRUCTIONS: Record<string, string[]> = {
+    'Barbell Back Squat': [
+        'Stand with feet shoulder-width apart, resting the barbell across your upper traps.',
+        'Brace your core and initiate the movement by sending your hips back and bending your knees.',
+        'Lower until your thighs are parallel to the floor, keeping your chest up and knees tracking over your toes.',
+        'Drive through your entire foot to return to the starting position, squeezing your glutes at the top.'
+    ],
+    'Romanian Deadlift': [
+        'Stand tall with feet hip-width apart, holding a barbell or dumbbells at thigh level.',
+        'Keep a slight, fixed bend in your knees and hinge at your hips, pushing your butt back.',
+        'Lower the weights along your shins until you feel a deep stretch in your hamstrings.',
+        'Drive your hips forward and stand tall, locking out the glutes at the top.'
+    ],
+    'Leg Press': [
+        'Sit firmly in the leg press machine with your back flat against the pad.',
+        'Place feet shoulder-width apart on the sled platform.',
+        'Release the safety catch and lower the sled under control until knees reach a 90-degree angle.',
+        'Drive the platform back up through your heels without locking out your knees at the top.'
+    ],
+    'Standing Calf Raise': [
+        'Position the balls of your feet on the calf raise block with shoulders under the pads.',
+        'Lower your heels as far as comfortable to get a full stretch in the calves.',
+        'Press through the balls of your feet to raise your heels as high as possible.',
+        'Hold the peak contraction for 1 second before lowering slowly.'
+    ],
+    'Hanging Leg Raise': [
+        'Grip a pull-up bar with an overhand grip, arms fully extended and body hanging.',
+        'Brace your core and raise your legs forward until they are parallel to the floor (or higher).',
+        'Avoid swinging or using momentum from your lower back.',
+        'Lower your legs slowly under control to return to the starting hang.'
+    ],
+    'Plank': [
+        'Place forearms on the floor with elbows aligned directly under your shoulders.',
+        'Extend legs back, balancing on the balls of your feet.',
+        'Engage your glutes, core, and quads to maintain a perfectly straight line from head to heels.',
+        'Hold the position without letting your hips sag or hike up.'
+    ],
+    'Barbell Bench Press': [
+        'Lie flat on the bench with feet firmly planted on the floor.',
+        'Grip the bar slightly wider than shoulder-width and unrack it above your chest.',
+        'Lower the bar under control to the mid-chest, tucking elbows slightly.',
+        'Press the bar explosively back to the starting position.'
+    ],
+    'Incline Dumbbell Press': [
+        'Set an adjustable bench to a 30-45 degree incline.',
+        'Hold two dumbbells at shoulder level with palms facing forward.',
+        'Press the weights upward until your arms are fully extended over your upper chest.',
+        'Lower slowly under control until you feel a comfortable stretch in the pecs.'
+    ],
+    'Cable Flyes': [
+        'Set pulleys to chest height and grab the handles with palms facing forward.',
+        'Step forward to create tension, keeping a slight bend in your elbows.',
+        'Bring your hands together in an arc motion in front of your chest, squeezing the pecs.',
+        'Return slowly along the same arc until chest muscles are stretched.'
+    ],
+    'Overhead Tricep Extension': [
+        'Hold a dumbbell or rope attachment overhead with both hands, arms extended.',
+        'Keep upper arms stationary and close to your head as you bend your elbows.',
+        'Lower the weight behind your head until triceps are fully stretched.',
+        'Extend elbows to press the weight back to the top position.'
+    ],
+    'Tricep Pushdowns': [
+        'Attach a rope or straight bar to a high pulley.',
+        'Keep elbows pinned to your sides and push the attachment down until arms are fully extended.',
+        'Squeeze your triceps hard at the bottom.',
+        'Return slowly to a 90-degree elbow bend without moving your upper arms.'
+    ],
+    'Russian Twists': [
+        'Sit on the floor with knees bent, feet slightly elevated, and torso leaning back at 45 degrees.',
+        'Hold a weight plate or medicine ball with both hands in front of your chest.',
+        'Rotate your torso to the right, touching the weight near the floor.',
+        'Rotate smoothly to the left side, keeping your core braced throughout.'
+    ]
 };
 
-const getTrialBadgeStyle = (status: string) => {
-    switch (status) {
-        case 'approved':
-        case 'completed':
-            return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-        case 'rejected':
-            return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-        case 'rescheduled':
-            return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-        case 'pending':
-        default:
-            return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
-    }
+const DEFAULT_WORKOUT_PLAN = {
+    name: 'Elite Hypertrophy & Power Protocol',
+    level: 'Advanced',
+    goal: 'Hypertrophy & Strength',
+    description: 'A comprehensive 7-day training protocol engineered for rapid strength development and muscle hypertrophy. Follow the prescribed supersets and rest periods.',
+    duration: '60-75 Min',
+    frequency: '5 Days / Week',
+    trainer: 'Marcus Johnson',
+    schedule: [
+        {
+            day: 'Monday — Chest & Triceps',
+            focus: 'Hypertrophy',
+            exercises: [
+                { name: 'Barbell Bench Press', sets: 4, reps: '8-10', rest: '90s' },
+                { name: 'Incline Dumbbell Press', sets: 4, reps: '10-12', rest: '75s' },
+                { name: 'Cable Flyes', sets: 3, reps: '12-15', rest: '60s', supersetGroup: 'A' },
+                { name: 'Tricep Pushdowns', sets: 3, reps: '12-15', rest: '60s', supersetGroup: 'A' },
+                { name: 'Overhead Tricep Extension', sets: 3, reps: '10-12', rest: '60s' }
+            ]
+        },
+        {
+            day: 'Tuesday — Back & Biceps',
+            focus: 'Strength',
+            exercises: [
+                { name: 'Romanian Deadlift', sets: 4, reps: '6-8', rest: '120s' },
+                { name: 'Hanging Leg Raise', sets: 3, reps: '12-15', rest: '60s' }
+            ]
+        },
+        {
+            day: 'Wednesday — Active Recovery',
+            focus: 'Mobility & Stretch',
+            exercises: []
+        },
+        {
+            day: 'Thursday — Legs & Glutes',
+            focus: 'Power & Size',
+            exercises: [
+                { name: 'Barbell Back Squat', sets: 4, reps: '6-8', rest: '120s' },
+                { name: 'Leg Press', sets: 4, reps: '10-12', rest: '90s' },
+                { name: 'Standing Calf Raise', sets: 4, reps: '15-20', rest: '60s' }
+            ]
+        },
+        {
+            day: 'Friday — Shoulders & Core',
+            focus: 'Hypertrophy',
+            exercises: [
+                { name: 'Plank', sets: 3, reps: '60s', rest: '45s', supersetGroup: 'B' },
+                { name: 'Russian Twists', sets: 3, reps: '20', rest: '45s', supersetGroup: 'B' }
+            ]
+        },
+        {
+            day: 'Saturday — Full Body Conditioning',
+            focus: 'Metabolic Conditioning',
+            exercises: [
+                { name: 'Barbell Back Squat', sets: 3, reps: '12', rest: '60s' },
+                { name: 'Barbell Bench Press', sets: 3, reps: '12', rest: '60s' }
+            ]
+        },
+        {
+            day: 'Sunday — Rest & Recovery',
+            focus: 'Rest Day',
+            exercises: []
+        }
+    ]
 };
 
-const getPTRequestBadgeStyle = (status: string) => {
-    switch (status) {
-        case 'approved':
-        case 'paid':
-            return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-        case 'rejected':
-            return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-        case 'rescheduled':
-            return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-        case 'pending':
-        default:
-            return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
-    }
+const DEFAULT_DIET_PLAN = {
+    name: 'Elite Shred & Muscle Gain',
+    type: 'High Protein / Timed Carb',
+    description: 'Custom nutrient timing and macro targets designed to maximize recovery and lean tissue accretion while keeping body fat low.',
+    dailyCalories: '2,650',
+    macros: {
+        protein: '210g',
+        carbs: '280g',
+        fats: '65g'
+    },
+    meals: [
+        {
+            meal: 'Meal 1 — Breakfast',
+            time: '07:30 AM',
+            calories: 620,
+            protein: '45g',
+            items: ['4 Whole Eggs + 2 Egg Whites', '80g Oatmeal with Berries', '1 Scoop Whey Protein']
+        },
+        {
+            meal: 'Meal 2 — Pre-Workout',
+            time: '11:00 AM',
+            calories: 480,
+            protein: '40g',
+            items: ['200g Chicken Breast', '150g White Rice', '100g Steamed Broccoli']
+        },
+        {
+            meal: 'Meal 3 — Post-Workout',
+            time: '01:30 PM',
+            calories: 750,
+            protein: '55g',
+            items: ['250g Lean Beef / Steak', '250g Sweet Potato', 'Mixed Green Salad with Olive Oil']
+        },
+        {
+            meal: 'Meal 4 — Evening Snack',
+            time: '05:00 PM',
+            calories: 350,
+            protein: '35g',
+            items: ['200g Greek Yogurt', '30g Walnuts or Almonds', '1 Banana']
+        },
+        {
+            meal: 'Meal 5 — Before Bed',
+            time: '09:00 PM',
+            calories: 450,
+            protein: '35g',
+            items: ['1.5 Scoops Casein Protein', '1 Tbsp Natural Peanut Butter', 'Handful of Berries']
+        }
+    ]
 };
 
 function computeUnlocked(ptStatus: any, trials: any): {
@@ -134,6 +355,28 @@ export default function MemberPlansPage() {
     const [trialBookings, setTrialBookings] = useState<any>({});
     const [preferredTrainerId, setPreferredTrainerId] = useState<string | null>(null);
 
+    const { user: currentUser } = useAuth();
+    const { addNotification } = useNotifications();
+
+    const [activeProfileTrainer, setActiveProfileTrainer] = useState<typeof TRAINERS[0] | null>(null);
+    const [activeBookingTrainer, setActiveBookingTrainer] = useState<typeof TRAINERS[0] | null>(null);
+    const [bookingDateIdx, setBookingDateIdx] = useState<number>(0);
+    const [bookingTime, setBookingTime] = useState<string | null>(null);
+    const [isPaying, setIsPaying] = useState(false);
+
+    const [trainerCapacities, setTrainerCapacities] = useState<Record<string, TrainerCapacity>>(() => {
+        if (typeof window === 'undefined') return {};
+        const result: Record<string, TrainerCapacity> = {};
+        TRAINERS.forEach(t => { result[t.id] = getTrainerCapacity(t.id); });
+        return result;
+    });
+
+    const loadCapacities = () => {
+        const caps: Record<string, TrainerCapacity> = {};
+        TRAINERS.forEach(t => { caps[t.id] = getTrainerCapacity(t.id); });
+        setTrainerCapacities(caps);
+    };
+
     // Load PT data from storage
     const loadPTData = () => {
         try {
@@ -148,7 +391,11 @@ export default function MemberPlansPage() {
 
     useEffect(() => {
         loadPTData();
-        const handler = () => loadPTData();
+        loadCapacities();
+        const handler = (e?: any) => {
+            loadPTData();
+            if (e && e.key === CAPACITY_STORAGE_KEY) loadCapacities();
+        };
         window.addEventListener('storage', handler);
         window.addEventListener('focus', handler);
         return () => {
@@ -156,7 +403,6 @@ export default function MemberPlansPage() {
             window.removeEventListener('focus', handler);
         };
     }, []);
-
 
     // Load weekly workout plan (only when PT is unlocked)
     useEffect(() => {
@@ -229,421 +475,990 @@ export default function MemberPlansPage() {
         return groups;
     };
 
+    const bookingDates = Array.from({ length: 3 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i + 1);
+        return {
+            label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+            date: d.getDate(),
+            month: d.toLocaleDateString('en-US', { month: 'short' }),
+            formatted: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+        };
+    });
+
+    const bookingTimeSlots = [
+        '09:00 AM', '10:30 AM', '12:00 PM', '02:30 PM', '04:00 PM', '05:30 PM'
+    ];
+
+    const handleConfirmBooking = () => {
+        if (!activeBookingTrainer || !bookingTime) return;
+
+        const newBookings = {
+            ...trialBookings,
+            [activeBookingTrainer.id]: {
+                date: bookingDates[bookingDateIdx].formatted,
+                time: bookingTime,
+                status: 'pending' as const
+            }
+        };
+
+        setTrialBookings(newBookings);
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(newBookings));
+        
+        const updatedPT = {
+            ...ptStatus,
+            trialCompleted: true
+        };
+        localStorage.setItem('zenith_pt_status', JSON.stringify(updatedPT));
+        setPtStatus(updatedPT);
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '📅 Trial Session Request',
+            message: `${currentUser?.name || 'Alex'} has requested a trial session with you for ${bookingDates[bookingDateIdx].formatted} at ${bookingTime}.`,
+            metadata: {
+                type: 'TRIAL_REQUEST',
+                trainerId: activeBookingTrainer.id,
+                trainerName: activeBookingTrainer.name,
+                memberEmail: currentUser?.email || 'member@nexusgym.com',
+                memberName: currentUser?.name || 'Alex',
+                date: bookingDates[bookingDateIdx].formatted,
+                time: bookingTime,
+                status: 'pending'
+            }
+        });
+
+        toast.success("Trial Request Submitted!", {
+            description: `Awaiting approval from ${activeBookingTrainer.name} for session on ${bookingDates[bookingDateIdx].formatted} at ${bookingTime}`
+        });
+
+        setActiveBookingTrainer(null);
+    };
+
+    const handleCompleteTrialSession = (trainerId: string, trainerName: string) => {
+        const savedBookings = localStorage.getItem('zenith_trainer_trials');
+        const bookings = savedBookings ? JSON.parse(savedBookings) : {};
+        bookings[trainerId] = {
+            ...(bookings[trainerId] || {}),
+            status: 'completed',
+            date: bookings[trainerId]?.date || 'Today',
+            time: bookings[trainerId]?.time || '10:00 AM'
+        };
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(bookings));
+        setTrialBookings(bookings);
+
+        const updatedPT = {
+            ...ptStatus,
+            trialCompleted: true
+        };
+        localStorage.setItem('zenith_pt_status', JSON.stringify(updatedPT));
+        setPtStatus(updatedPT);
+        window.dispatchEvent(new Event('storage'));
+
+        toast.success(`Trial session with ${trainerName} completed!`, {
+            description: "You can now select your preferred trainer for Personal Training."
+        });
+    };
+
+    const handleSendPTRequest = (trainer: typeof TRAINERS[0]) => {
+        const updatedStatus = {
+            ...ptStatus,
+            status: 'pending',
+            requestedTrainerId: trainer.id,
+            requestedTrainerName: trainer.name,
+            requestedTrainerRole: trainer.role,
+            requestedTrainerImage: trainer.image,
+            requestedTrainerSpecialties: trainer.specialties,
+            requestDate: new Date().toISOString(),
+            price: 9999,
+            duration: '1 Month',
+            trainerSelected: true,
+            trialCompleted: true
+        };
+
+        localStorage.setItem('zenith_pt_status', JSON.stringify(updatedStatus));
+        localStorage.setItem('zenith_preferred_trainer_id', trainer.id);
+        setPreferredTrainerId(trainer.id);
+        setPtStatus(updatedStatus);
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '💳 Personal Training Request',
+            message: `${currentUser?.name || 'Alex'} has requested you as their Personal Trainer.`,
+            metadata: {
+                type: 'PT_REQUEST',
+                trainerId: trainer.id,
+                trainerName: trainer.name,
+                memberName: currentUser?.name || 'Alex',
+                memberEmail: currentUser?.email || 'member@nexusgym.com'
+            }
+        });
+
+        toast.success(`PT Request Submitted to ${trainer.name}!`, {
+            description: "Awaiting trainer review and approval. You will be notified once confirmed."
+        });
+    };
+
+    const handleSimulateTrainerApproval = () => {
+        const updatedStatus = {
+            ...ptStatus,
+            status: 'approved',
+            trainerApproved: true,
+            approvalDate: new Date().toISOString()
+        };
+        localStorage.setItem('zenith_pt_status', JSON.stringify(updatedStatus));
+        setPtStatus(updatedStatus);
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'member',
+            category: 'MEMBERSHIP',
+            priority: 'high',
+            title: '✅ Personal Training Request Approved!',
+            message: `Your Personal Training request with ${ptStatus.requestedTrainerName || 'your trainer'} has been approved! Complete payment to activate your plan.`
+        });
+
+        toast.success("Trainer request approved!", {
+            description: "Step 3 (Payment) is now unlocked."
+        });
+    };
+
+    const handleCompletePayment = async () => {
+        setIsPaying(true);
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        const today = new Date();
+        const expiry = new Date();
+        expiry.setDate(today.getDate() + 30);
+
+        const trainerId = ptStatus.requestedTrainerId || preferredTrainerId || 'marcus-johnson';
+        const trainerObj = TRAINERS.find(t => t.id === trainerId) || TRAINERS[0];
+
+        const updatedPT = {
+            ...ptStatus,
+            status: 'paid',
+            trialCompleted: true,
+            trainerSelected: true,
+            paymentCompleted: true,
+            trainerApproved: true,
+            paymentDate: today.toISOString(),
+            startDate: today.toISOString(),
+            expiryDate: expiry.toISOString(),
+            approvalDate: today.toISOString(),
+            assignedTrainerId: trainerObj.id,
+            assignedTrainerName: trainerObj.name,
+        };
+
+        localStorage.setItem('zenith_pt_status', JSON.stringify(updatedPT));
+        setPtStatus(updatedPT);
+
+        // Update trial status to completed
+        try {
+            const savedTrials = localStorage.getItem('zenith_trainer_trials');
+            const trials = savedTrials ? JSON.parse(savedTrials) : {};
+            if (trials[trainerObj.id]) {
+                trials[trainerObj.id].status = 'completed';
+                localStorage.setItem('zenith_trainer_trials', JSON.stringify(trials));
+                setTrialBookings(trials);
+            }
+        } catch (e) {}
+
+        // Save Paid Invoice
+        try {
+            const newPaidInvoice = {
+                id: `INV-2026-PT${Date.now().toString().slice(-3)}`,
+                date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                amount: 9999,
+                description: `Personal Training - ${trainerObj.name} (1 Month)`,
+                status: 'Paid'
+            };
+            const savedInvoicesList = localStorage.getItem('zenith_member_invoices');
+            const currentInvoices = savedInvoicesList ? JSON.parse(savedInvoicesList) : [];
+            localStorage.setItem('zenith_member_invoices', JSON.stringify([newPaidInvoice, ...currentInvoices]));
+        } catch (e) {}
+
+        // Add to audit trail
+        try {
+            const savedAudit = localStorage.getItem('zenith_trial_audit_trail');
+            const logs = savedAudit ? JSON.parse(savedAudit) : [];
+            const newLog = {
+                id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                requestId: `local_${trainerObj.id}`,
+                action: 'Completed',
+                memberName: currentUser?.name || 'Alex Thompson',
+                membershipId: 'NX-2026-9041',
+                trainerName: trainerObj.name,
+                timestamp: today.toISOString(),
+                details: `Personal Training Payment Successful (₹9,999). Workouts unlocked.`
+            };
+            localStorage.setItem('zenith_trial_audit_trail', JSON.stringify([newLog, ...logs]));
+        } catch (e) {}
+
+        // Add member to trainer's My Members list if not already assigned
+        try {
+            const savedMembers = localStorage.getItem('zenith_trainer_members');
+            const currentMembers = savedMembers ? JSON.parse(savedMembers) : [];
+            const existingIdx = currentMembers.findIndex((m: any) => m.email === (currentUser?.email || 'alex.t@example.com'));
+            const memberRecord = {
+                id: currentUser?.id || 1,
+                name: currentUser?.name || 'Alex Thompson',
+                email: currentUser?.email || 'alex.t@example.com',
+                phone: '+1 (555) 123-4567',
+                status: 'Active',
+                goal: (currentUser as any)?.goal || 'Weight Loss & Conditioning',
+                progress: 10,
+                workoutPlan: workoutPlan?.name || 'Personalized Routine',
+                dietPlan: dietPlan?.name || 'Custom Nutrition Plan',
+                lastCheckIn: 'Just now',
+                joinDate: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                avatar: (currentUser?.name || 'Alex Thompson').split(' ').map((n: string) => n[0]).join('')
+            };
+            if (existingIdx >= 0) {
+                currentMembers[existingIdx] = memberRecord;
+            } else {
+                currentMembers.unshift(memberRecord);
+            }
+            localStorage.setItem('zenith_trainer_members', JSON.stringify(currentMembers));
+        } catch (e) {}
+
+        // Send notifications
+        addNotification({
+            role: 'member',
+            userId: currentUser?.id || '3',
+            category: 'MEMBERSHIP',
+            priority: 'high',
+            title: '✅ Personal Training Activated!',
+            message: `Payment successful! Your Personal Training membership with ${trainerObj.name} is now active. My Workouts is unlocked!`,
+        });
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '💳 New PT Client Enrolled',
+            message: `${currentUser?.name || 'Alex Thompson'} completed payment for Personal Training. They have been added to your My Members list.`,
+            metadata: { memberEmail: currentUser?.email, trainerId: trainerObj.id }
+        });
+
+        window.dispatchEvent(new Event('storage'));
+        setIsPaying(false);
+
+        toast.success("Personal Training Activated!", {
+            description: "Your workouts have been unlocked. Let's train!"
+        });
+    };
+
     // --- PT Gate Check ---
     const gate = computeUnlocked(ptStatus, trialBookings);
 
-    // Locked State UI
+    // Locked State UI - Professional 4-Step Personal Training Onboarding
     if (!gate.allDone) {
-        // Find trial details
         const trialEntries = Object.entries(trialBookings || {});
         const hasTrialBooked = trialEntries.length > 0;
-        let trialTrainerId = '';
-        let trialDate = '';
-        let trialTime = '';
-        let trialStatus = '';
-        if (hasTrialBooked) {
-            const [tid, tdata]: [string, any] = trialEntries[0];
-            trialTrainerId = tid;
-            trialDate = tdata.date || '';
-            trialTime = tdata.time || '';
-            trialStatus = tdata.status || 'pending';
+        const isTrialCompleted = ptStatus?.trialCompleted || (hasTrialBooked && trialEntries.some(([, t]: any) => t.status === 'approved' || t.status === 'completed'));
+        const isTrainerSelected = !!preferredTrainerId || !!ptStatus?.requestedTrainerId || !!ptStatus?.assignedTrainerId;
+        const isRequestPending = ptStatus?.status === 'pending';
+        const isRequestApproved = ptStatus?.status === 'approved' || ptStatus?.trainerApproved === true;
+        const isPaid = ptStatus?.status === 'paid' || !!ptStatus?.paymentCompleted;
+
+        let currentStep = 1;
+        if (isPaid) {
+            currentStep = 4;
+        } else if (isRequestApproved) {
+            currentStep = 3;
+        } else if (isRequestPending || isTrainerSelected) {
+            currentStep = 2;
+        } else {
+            currentStep = 1;
         }
 
-        const step1Completed = ptStatus?.trialCompleted || (hasTrialBooked && (trialStatus === 'approved' || trialStatus === 'completed'));
-        
-        const preferredTrainerIdVal = preferredTrainerId || ptStatus?.requestedTrainerId || ptStatus?.assignedTrainerId;
-        const step2Completed = !!preferredTrainerIdVal;
-
-        const step3Completed = ptStatus?.trainerApproved || ptStatus?.status === 'approved' || ptStatus?.status === 'paid';
-        const step3Status = ptStatus?.status || ''; // 'pending', 'approved', 'rejected', 'rescheduled', 'paid'
-        const step3RequestedTrainerName = ptStatus?.requestedTrainerName || '';
-
-        const step4Active = step3Completed;
-        const step4Completed = ptStatus?.paymentCompleted || ptStatus?.status === 'paid';
-
-        const step5Completed = gate.allDone;
-
-        // Calculate progress percentage
-        let progressPercent = 0;
-        if (step1Completed) progressPercent += 20;
-        else if (hasTrialBooked) progressPercent += 10;
-
-        if (step2Completed) progressPercent += 20;
-
-        if (step3Completed) progressPercent += 20;
-        else if (step3Status === 'pending') progressPercent += 10;
-
-        if (step4Completed) progressPercent += 20;
-        if (step5Completed) progressPercent += 20;
-
-        const steps = [
-            {
-                id: 1,
-                label: 'Choose Trainer for Trial',
-                description: 'View selected trainer, trial date, and trial status.',
-                done: step1Completed,
-                active: !step1Completed,
-                icon: Calendar,
-            },
-            {
-                id: 2,
-                label: 'Select Preferred Trainer',
-                description: 'Show the selected trainer\'s profile, specialization, and experience.',
-                done: step2Completed,
-                active: step1Completed && !step2Completed,
-                icon: UserCheck,
-            },
-            {
-                id: 3,
-                label: 'Wait for Approval',
-                description: 'Display approval status with real-time notifications and estimated response time.',
-                done: step3Completed,
-                active: step2Completed && !step3Completed,
-                icon: Clock,
-            },
-            {
-                id: 4,
-                label: 'Complete Payment',
-                description: 'Once approved, automatically activate the payment step and link to Billing.',
-                done: step4Completed,
-                active: step3Completed && !step4Completed,
-                icon: CreditCard,
-            },
-            {
-                id: 5,
-                label: 'Personal Training Activated',
-                description: 'Unlock personalized workouts and view assigned trainer details.',
-                done: step5Completed,
-                active: step4Completed && !step5Completed,
-                icon: Unlock,
-            },
-        ];
+        const requestedCoach = TRAINERS.find(t => t.id === ptStatus?.requestedTrainerId) ||
+            TRAINERS.find(t => t.id === preferredTrainerId) ||
+            TRAINERS[0];
 
         return (
-            <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="w-full max-w-2xl bg-slate-950/40 border border-slate-800/80 p-6 md:p-8 rounded-3xl relative overflow-hidden backdrop-blur-md">
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 min-h-screen pb-16">
+                {/* Onboarding Container Card */}
+                <div className="w-full bg-slate-900/60 dark:bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-xl relative overflow-hidden shadow-2xl">
                     {/* Ambient glow */}
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[120px]" />
-                    </div>
+                    <div className="absolute top-0 right-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+                    <div className="absolute bottom-0 left-10 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-                    {/* Lock Icon */}
-                    <div className="flex flex-col items-center mb-8 relative text-center">
-                        <div className="relative mb-4">
-                            <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-2xl animate-pulse scale-150" />
-                            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 flex items-center justify-center shadow-2xl">
-                                <Lock className="w-10 h-10 text-indigo-400" />
+                    {/* Top Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-wider w-fit mb-2">
+                                <Zap className="w-3.5 h-3.5 text-indigo-400" />
+                                <span>Exclusive Coaching Access</span>
+                            </div>
+                            <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight uppercase italic">
+                                Personal Training <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Onboarding</span>
+                            </h1>
+                            <p className="text-slate-400 text-sm mt-1 max-w-xl">
+                                Follow our guided 4-step onboarding journey to activate your 1-on-1 Personal Training subscription and unlock your custom-engineered workout plans.
+                            </p>
+                        </div>
+
+                        {/* Current Step Badge */}
+                        <div className="flex items-center gap-3">
+                            <div className="px-4 py-2.5 rounded-2xl bg-indigo-950/60 border border-indigo-500/30 flex items-center gap-2.5 shadow-lg">
+                                <span className="w-2.5 h-2.5 rounded-full bg-indigo-400" />
+                                <span className="text-xs font-black text-indigo-300 uppercase tracking-wider">
+                                    Step {currentStep} of 4 — {ONBOARDING_STEPS[currentStep - 1].label}
+                                </span>
                             </div>
                         </div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-3">
-                            <ShieldAlert className="w-3.5 h-3.5 text-indigo-400" />
-                            <span className="text-xs font-bold text-indigo-400 tracking-wider uppercase">Personal Training Required</span>
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-                            Personal Training Required
-                        </h1>
-                        <p className="text-slate-350 mt-4 max-w-md text-sm font-semibold mx-auto">
-                            To access personalized workout plans, you must:
-                        </p>
-                        <ul className="text-slate-400 mt-2.5 space-y-1.5 text-sm text-left max-w-xs mx-auto list-disc list-inside">
-                            <li>Complete a trainer trial</li>
-                            <li>Select your preferred trainer</li>
-                            <li>Complete the personal training payment</li>
-                        </ul>
+                    </div>
 
-                        <div className="flex flex-col sm:flex-row gap-4 mt-6 w-full justify-center">
-                            <Link href="/member/personal-training">
-                                <Button className="w-full sm:w-auto h-12 px-8 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-950/20 text-sm gap-2">
-                                    <Dumbbell className="w-4 h-4" />
-                                    Choose Trainer
-                                </Button>
-                            </Link>
+                    {/* Horizontal Progress Tracker */}
+                    <div className="relative mb-10 pb-2">
+                        <div className="grid grid-cols-4 gap-2 md:gap-4 relative z-10">
+                            {ONBOARDING_STEPS.map((stepItem, idx) => {
+                                const StepIcon = stepItem.icon;
+                                const stepNum = stepItem.id;
+                                const isCompleted = stepNum < currentStep || (stepNum === 4 && isPaid);
+                                const isCurrent = stepNum === currentStep;
+
+                                return (
+                                    <div
+                                        key={stepItem.id}
+                                        className={`flex flex-col items-center text-center relative group transition-all duration-300 ${
+                                            isCurrent
+                                                ? 'scale-105'
+                                                : isCompleted
+                                                ? 'opacity-90'
+                                                : 'opacity-40'
+                                        }`}
+                                    >
+                                        {/* Connecting Line (for items 1 to 3) */}
+                                        {idx < 3 && (
+                                            <div className="absolute top-6 left-1/2 w-full h-[2px] bg-slate-800 -z-10">
+                                                <div
+                                                    className={`h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 ${
+                                                        isCompleted ? 'w-full' : 'w-0'
+                                                    }`}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* Node Circle */}
+                                        <div
+                                            className={`w-12 h-12 rounded-2xl border-2 flex items-center justify-center transition-all duration-300 mb-2 shadow-lg ${
+                                                isCompleted
+                                                    ? 'bg-emerald-500 border-emerald-400 text-black shadow-emerald-500/20'
+                                                    : isCurrent
+                                                    ? 'bg-gradient-to-br from-indigo-600 to-purple-600 border-indigo-400 text-white shadow-indigo-500/30'
+                                                    : 'bg-slate-900 border-slate-700 text-slate-500'
+                                            }`}
+                                        >
+                                            {isCompleted ? (
+                                                <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
+                                            ) : (
+                                                <StepIcon className="w-6 h-6" />
+                                            )}
+                                        </div>
+
+                                        {/* Step Label */}
+                                        <div className="flex flex-col items-center">
+                                            <span
+                                                className={`text-xs font-black uppercase tracking-wider ${
+                                                    isCurrent
+                                                        ? 'text-indigo-400'
+                                                        : isCompleted
+                                                        ? 'text-emerald-400'
+                                                        : 'text-slate-500'
+                                                }`}
+                                            >
+                                                Step {stepNum}
+                                            </span>
+                                            <span
+                                                className={`text-xs font-bold mt-0.5 hidden sm:block ${
+                                                    isCurrent
+                                                        ? 'text-white'
+                                                        : isCompleted
+                                                        ? 'text-slate-300'
+                                                        : 'text-slate-500'
+                                                }`}
+                                            >
+                                                {stepItem.label}
+                                            </span>
+                                            <span className="text-[10px] text-slate-500 hidden md:block mt-0.5">
+                                                {stepItem.description}
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    {/* Progress Accordion */}
-                    <Accordion type="single" collapsible className="w-full border-t border-slate-800/80 pt-6">
-                        <AccordionItem value="timeline" className="border-none">
-                            <AccordionTrigger className="hover:no-underline py-2 text-xs font-bold text-slate-500 hover:text-slate-400 uppercase tracking-widest flex items-center justify-between">
-                                <span>View Hiring & Enrollment Progress</span>
-                            </AccordionTrigger>
-                            <AccordionContent className="pt-4">
-                                {/* Progress Percentage & Bar */}
-                                <div className="mb-6 p-4 bg-slate-900/40 rounded-2xl border border-slate-800/60">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">Enrollment Progress</span>
-                                        <span className="text-xs font-mono text-indigo-400 font-bold">{progressPercent}% Completed</span>
-                                    </div>
-                                    <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/30">
-                                        <motion.div
-                                            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 rounded-full"
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${progressPercent}%` }}
-                                            transition={{ duration: 1, ease: "easeOut" }}
-                                        />
-                                    </div>
+                    {/* DYNAMIC INTERFACE CONTENT BY STAGE */}
+
+                    {/* STAGE 1: Choose Your Trainer (Trainer Trial or Direct Hire) */}
+                    {currentStep === 1 && (
+                        <div className="space-y-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+                                <div>
+                                    <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-2">
+                                        <UserCheck className="w-5 h-5 text-indigo-400" />
+                                        Step 1 — Choose Your Trainer
+                                    </h2>
+                                    <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+                                        Select your personal coach. You can <strong className="text-emerald-400">Book a Trial Session (Option 1)</strong> to experience their training first, or <strong className="text-indigo-400">Hire Trainer Directly (Option 2)</strong> to skip the trial and submit your coaching request immediately.
+                                    </p>
                                 </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-xs py-1 px-3 w-fit font-bold uppercase">
+                                        Option 1: Trial (Optional)
+                                    </Badge>
+                                    <Badge className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-xs py-1 px-3 w-fit font-bold uppercase">
+                                        Option 2: Direct Hire
+                                    </Badge>
+                                </div>
+                            </div>
 
-                                {/* Interactive Visual Timeline */}
-                                <div className="space-y-0 relative pl-4 md:pl-6 text-sm">
-                                    {steps.map((step, i) => {
-                                        const Icon = step.icon;
-                                        const isLast = i === steps.length - 1;
-                                        const isCompleted = step.done;
-                                        const isActive = step.active;
+                            {/* Trainer Grid */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {TRAINERS.map((trainer) => {
+                                    const capacity = trainerCapacities[trainer.id] || { maxClients: 15, currentClients: 8 };
+                                    const availableSlots = Math.max(0, (capacity.maxClients || 15) - (capacity.currentClients || 0));
+                                    const trial = trialBookings[trainer.id];
+                                    const isTrialScheduled = !!trial;
+                                    const isTrainerFull = availableSlots === 0;
 
-                                        return (
-                                            <div key={step.id} className="relative pb-8 last:pb-0 animate-in fade-in duration-300">
-                                                {/* Vertical Line Connector */}
-                                                {!isLast && (
-                                                    <div 
-                                                        className={`absolute left-[15px] top-[32px] bottom-0 w-[2px] -z-10 transition-colors duration-500 ${
-                                                            isCompleted ? 'bg-emerald-500/30' : 'bg-slate-800'
-                                                        }`} 
+                                    return (
+                                        <Card
+                                            key={trainer.id}
+                                            className={`bg-slate-900/60 border rounded-3xl overflow-hidden transition-all duration-300 flex flex-col justify-between group ${
+                                                isTrialScheduled
+                                                    ? 'border-emerald-500/40 shadow-lg shadow-emerald-500/5'
+                                                    : 'border-slate-800/80 hover:border-indigo-500/40'
+                                            }`}
+                                        >
+                                            <div>
+                                                {/* Trainer Image & Badges Overlay */}
+                                                <div className="relative h-56 w-full overflow-hidden">
+                                                    <img
+                                                        src={trainer.image}
+                                                        alt={trainer.name}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                     />
-                                                )}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
 
-                                                {/* Timeline Circle Node */}
-                                                <div className="absolute left-0 top-[4px] -translate-x-[7px] z-10">
-                                                    <div 
-                                                        className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-500 ${
-                                                            isCompleted 
-                                                                ? 'bg-emerald-950 border-emerald-500 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                                                                : isActive
-                                                                ? 'bg-indigo-950 border-indigo-500 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)] animate-pulse'
-                                                                : 'bg-slate-900 border-slate-800 text-slate-600'
-                                                        }`}
-                                                    >
-                                                        {isCompleted ? (
-                                                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                                    {/* Top Badges */}
+                                                    <div className="absolute top-3 left-3 right-3 flex justify-between items-center">
+                                                        {isTrialScheduled ? (
+                                                            <Badge className="bg-emerald-500/90 text-black font-black text-[10px] px-2.5 py-1 uppercase shadow-md">
+                                                                ✓ {trial.status === 'completed' ? 'Trial Completed' : `Scheduled: ${trial.date} (${trial.time})`}
+                                                            </Badge>
                                                         ) : (
-                                                            <Icon className="w-4 h-4" />
+                                                            <Badge className="bg-slate-900/80 backdrop-blur-md text-indigo-400 border-indigo-500/30 text-[10px] px-2.5 py-1 font-bold">
+                                                                {trainer.experience} Exp
+                                                            </Badge>
                                                         )}
+
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Badge className="bg-slate-900/80 backdrop-blur-md text-amber-400 border-amber-500/30 text-[10px] px-2 py-1 font-bold flex items-center gap-1">
+                                                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                                                {trainer.rating}
+                                                            </Badge>
+                                                            <Badge className={`backdrop-blur-md text-[10px] px-2 py-1 font-bold ${
+                                                                isTrainerFull
+                                                                    ? 'bg-rose-950/80 text-rose-400 border-rose-500/30'
+                                                                    : 'bg-slate-900/80 text-emerald-400 border-emerald-500/30'
+                                                            }`}>
+                                                                {isTrainerFull ? 'Full' : `${availableSlots} Spots Open`}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Name & Role overlay */}
+                                                    <div className="absolute bottom-3 left-4 right-4">
+                                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">
+                                                            {trainer.role}
+                                                        </p>
+                                                        <h3 className="text-xl font-bold text-white tracking-tight">
+                                                            {trainer.name}
+                                                        </h3>
                                                     </div>
                                                 </div>
 
-                                                {/* Step content card */}
-                                                <div className={`ml-8 md:ml-10 p-4 rounded-2xl border transition-all duration-300 ${
-                                                    isCompleted 
-                                                        ? 'bg-emerald-950/5 border-emerald-950/50'
-                                                        : isActive
-                                                        ? 'bg-indigo-950/10 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.04)]'
-                                                        : 'bg-slate-900/20 border-slate-900 opacity-60'
-                                                }`}>
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className={`text-[10px] uppercase font-bold tracking-widest ${
-                                                            isCompleted ? 'text-emerald-400' : isActive ? 'text-indigo-400' : 'text-slate-500'
-                                                        }`}>
-                                                            Step {step.id}
-                                                        </span>
-                                                        {isActive && (
-                                                            <Badge className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[9px] uppercase font-black px-2 py-0.5 rounded-full animate-pulse">
-                                                                Action Required
-                                                            </Badge>
-                                                        )}
-                                                        {isCompleted && (
-                                                            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] uppercase font-black px-2 py-0.5 rounded-full">
-                                                                Completed
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-
-                                                    <h3 className={`text-base font-bold mt-1 ${
-                                                        isCompleted ? 'text-slate-350' : isActive ? 'text-white' : 'text-slate-500'
-                                                    }`}>
-                                                        {step.label}
-                                                    </h3>
-                                                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                                                        {step.description}
+                                                <CardContent className="p-5 space-y-4">
+                                                    {/* Short Bio */}
+                                                    <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                                                        {trainer.bio}
                                                     </p>
 
-                                                    {/* Step Specific Details */}
-                                                    {step.id === 1 && (
-                                                        <div className="mt-3">
-                                                            {hasTrialBooked ? (
-                                                                (() => {
-                                                                    const trainerInfo = TRAINERS_INFO[trialTrainerId as keyof typeof TRAINERS_INFO];
-                                                                    return (
-                                                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-900/60 rounded-xl border border-slate-800/80 text-left">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <div className="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-bold text-indigo-400 overflow-hidden shrink-0">
-                                                                                    {trainerInfo?.image ? (
-                                                                                        <img src={trainerInfo.image} alt={trainerInfo.name} className="w-full h-full object-cover" />
-                                                                                    ) : (
-                                                                                        trainerInfo?.name ? trainerInfo.name.split(' ').map((n: string) => n[0]).join('') : 'T'
-                                                                                    )}
-                                                                                </div>
-                                                                                <div>
-                                                                                    <p className="text-sm font-bold text-white text-left">{trainerInfo?.name || trialTrainerId}</p>
-                                                                                    <p className="text-[11px] text-slate-400">Trial Schedule: {trialDate} at {trialTime}</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="flex items-center gap-2 self-start sm:self-auto">
-                                                                                <span className="text-[10px] text-slate-550 font-medium">Status:</span>
-                                                                                <Badge className={`px-2 py-0.5 text-[9px] font-black tracking-wide rounded-full border uppercase ${getTrialBadgeStyle(trialStatus)}`}>
-                                                                                    {trialStatus}
-                                                                                </Badge>
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })()
-                                                            ) : (
-                                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-900/40 rounded-xl border border-slate-800/60 border-dashed text-left">
-                                                                    <p className="text-xs text-slate-500">No trial session booked yet.</p>
-                                                                    <Link href="/member/trainer-trial">
-                                                                        <Button size="sm" className="h-8 px-3 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg gap-1.5 font-bold">
-                                                                            <Calendar className="w-3.5 h-3.5" />
-                                                                            Book Trial
-                                                                        </Button>
-                                                                    </Link>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                    {/* Specializations Tags */}
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {trainer.specialties.map((spec, i) => (
+                                                            <Badge
+                                                                key={i}
+                                                                variant="outline"
+                                                                className="bg-slate-950/50 text-slate-300 border-slate-800 text-[10px] px-2 py-0.5"
+                                                            >
+                                                                {spec}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
 
-                                                    {step.id === 2 && (
-                                                        <div className="mt-3">
-                                                            {step2Completed ? (
-                                                                (() => {
-                                                                    const prefTrainer = TRAINERS_INFO[preferredTrainerIdVal as keyof typeof TRAINERS_INFO];
-                                                                    return (
-                                                                        <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <div className="w-12 h-12 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center font-bold text-purple-400 overflow-hidden shrink-0">
-                                                                                    {prefTrainer?.image ? (
-                                                                                        <img src={prefTrainer.image} alt={prefTrainer.name} className="w-full h-full object-cover" />
-                                                                                    ) : (
-                                                                                        prefTrainer?.name ? prefTrainer.name.split(' ').map((n: string) => n[0]).join('') : 'PT'
-                                                                                    )}
-                                                                                </div>
-                                                                                <div>
-                                                                                    <h4 className="text-sm font-bold text-white text-left">{prefTrainer?.name || preferredTrainerIdVal}</h4>
-                                                                                    <p className="text-xs text-purple-400 font-medium mt-0.5">{prefTrainer?.role}</p>
-                                                                                    <p className="text-[11px] text-slate-400 mt-1">Experience: {prefTrainer?.experience || '10+ Years'}</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="flex flex-wrap gap-1">
-                                                                                {prefTrainer?.specialties?.map((spec, sidx) => (
-                                                                                    <span key={sidx} className="text-[9px] bg-slate-800 text-slate-300 border border-slate-700 px-1.5 py-0.5 rounded font-medium">
-                                                                                        {spec}
-                                                                                    </span>
-                                                                                ))}
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })()
-                                                            ) : (
-                                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-900/40 rounded-xl border border-slate-800/60 border-dashed text-left">
-                                                                    <p className="text-xs text-slate-500">No preferred trainer selected.</p>
-                                                                    <Link href="/member/trainer-trial">
-                                                                        <Button size="sm" className="h-8 px-3 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg gap-1.5 font-bold">
-                                                                            <UserCheck className="w-3.5 h-3.5" />
-                                                                            Select Trainer
-                                                                        </Button>
-                                                                    </Link>
-                                                                </div>
-                                                            )}
+                                                    {/* Availability & Goals preview */}
+                                                    <div className="pt-2 border-t border-slate-800/80 space-y-1.5 text-[11px] text-slate-400">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-slate-500">Availability:</span>
+                                                            <span className="text-slate-300 font-medium">{trainer.availability.split(' (')[0]}</span>
                                                         </div>
-                                                    )}
-
-                                                    {step.id === 3 && (
-                                                        <div className="mt-3">
-                                                            {step3Status ? (
-                                                                <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-3 text-left">
-                                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <span className="text-xs text-slate-400">Request Status:</span>
-                                                                            <Badge className={`px-2 py-0.5 text-[9px] font-black tracking-wide rounded-full border uppercase ${getPTRequestBadgeStyle(step3Status)}`}>
-                                                                                {step3Status}
-                                                                            </Badge>
-                                                                        </div>
-                                                                        <span className="text-[11px] text-indigo-400 font-medium">
-                                                                            Est. response: &lt; 2 hours
-                                                                        </span>
-                                                                    </div>
-                                                                    {step3Status === 'pending' && (
-                                                                        <div className="flex items-center gap-2 text-[10px] text-slate-400 bg-slate-950/40 px-2.5 py-1.5 rounded-lg border border-slate-800/50 animate-pulse">
-                                                                            <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping shrink-0" />
-                                                                            <span>Real-time sync active: Waiting for trainer response...</span>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            ) : (
-                                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-900/40 rounded-xl border border-slate-800/60 border-dashed text-left">
-                                                                    <p className="text-xs text-slate-500">No active Personal Training request found.</p>
-                                                                    <Link href="/member/personal-training">
-                                                                        <Button size="sm" className="h-8 px-3 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg gap-1.5 font-bold">
-                                                                            <ArrowRight className="w-3.5 h-3.5" />
-                                                                            Send Request
-                                                                        </Button>
-                                                                    </Link>
-                                                                </div>
-                                                            )}
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-slate-500">Primary Goal:</span>
+                                                            <span className="text-indigo-400 font-semibold">{trainer.trainingGoals[0]}</span>
                                                         </div>
-                                                    )}
-
-                                                    {step.id === 4 && (
-                                                        <div className="mt-3">
-                                                            {step4Completed ? (
-                                                                <div className="flex items-center gap-2 p-3 bg-emerald-950/10 rounded-xl border border-emerald-500/20 text-left">
-                                                                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                                                    <p className="text-xs text-emerald-400 font-bold">Payment Confirmed (₹9,999 Paid)</p>
-                                                                </div>
-                                                            ) : step4Active ? (
-                                                                <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-3 text-left">
-                                                                    <p className="text-xs text-slate-350">
-                                                                        Your request has been approved! Complete the payment to activate your plan.
-                                                                    </p>
-                                                                    <Link href="/member/billing?payPT=true" className="inline-block">
-                                                                        <Button size="sm" className="h-9 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-lg text-xs gap-1.5 shadow-md shadow-emerald-900/20">
-                                                                            <CreditCard className="w-3.5 h-3.5" />
-                                                                            Go to Billing & Pay Now
-                                                                        </Button>
-                                                                    </Link>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="p-3 bg-slate-950/20 rounded-xl border border-slate-900 text-slate-500 text-xs text-left">
-                                                                    🔒 Activates automatically once trainer request is approved.
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-
-                                                    {step.id === 5 && (
-                                                        <div className="mt-3">
-                                                            {step5Completed ? (
-                                                                <div className="p-4 bg-emerald-950/20 rounded-xl border-2 border-emerald-500/30 space-y-3 relative overflow-hidden text-left">
-                                                                    <div className="absolute inset-0 bg-emerald-500/5 blur-xl pointer-events-none" />
-                                                                    <div className="relative z-10 flex flex-col gap-2">
-                                                                        <div className="flex items-center gap-2 text-emerald-400">
-                                                                            <Unlock className="w-4 h-4" />
-                                                                            <span className="text-sm font-black uppercase tracking-wider">Plan Active & Workouts Unlocked!</span>
-                                                                        </div>
-                                                                        <p className="text-xs text-slate-300">
-                                                                            Assigned Coach: <strong className="text-white">{ptStatus.assignedTrainerName || 'Marcus Johnson'}</strong>
-                                                                        </p>
-                                                                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
-                                                                            <span>Start Date: {formatDate(ptStatus.startDate || ptStatus.paymentDate)}</span>
-                                                                            <span>Expiry Date: {formatDate(ptStatus.expiryDate)}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="p-3 bg-slate-950/20 rounded-xl border border-slate-900 text-slate-650 text-xs text-left">
-                                                                    🔓 Your plan will activate immediately upon payment confirmation.
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                    </div>
+                                                </CardContent>
                                             </div>
-                                        );
-                                    })}
+
+                                            {/* Footer Actions */}
+                                            <CardFooter className="p-5 pt-0 flex flex-col gap-2">
+                                                <div className="grid grid-cols-2 gap-2 w-full">
+                                                    {/* View Profile Button */}
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setActiveProfileTrainer(trainer)}
+                                                        className="w-full bg-slate-900/60 border-slate-700/80 hover:bg-slate-800 hover:border-slate-600 text-white font-bold text-xs gap-1.5 rounded-xl h-10"
+                                                    >
+                                                        <Info className="w-3.5 h-3.5 text-indigo-400" />
+                                                        Profile
+                                                    </Button>
+
+                                                    {/* Option 1: Book Trial / Complete Trial */}
+                                                    <Button
+                                                        size="sm"
+                                                        disabled={isTrainerFull && !isTrialScheduled}
+                                                        onClick={() => {
+                                                            if (isTrialScheduled && trial.status !== 'completed') {
+                                                                handleCompleteTrialSession(trainer.id, trainer.name);
+                                                            } else {
+                                                                setActiveBookingTrainer(trainer);
+                                                            }
+                                                        }}
+                                                        className={`w-full font-bold text-xs gap-1.5 rounded-xl h-10 shadow-md ${
+                                                            isTrialScheduled
+                                                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20'
+                                                                : 'bg-slate-800/80 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30'
+                                                        }`}
+                                                    >
+                                                        {isTrialScheduled ? (
+                                                            <>
+                                                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                                                {trial.status === 'completed' ? 'Trial Done' : 'Complete Trial'}
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Dumbbell className="w-3.5 h-3.5 shrink-0" />
+                                                                Book Trial
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
+
+                                                {/* Option 2: Hire Trainer Directly / Choose Coach */}
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleSendPTRequest(trainer)}
+                                                    className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs gap-2 rounded-xl h-10 shadow-lg shadow-indigo-900/30 border border-indigo-400/20"
+                                                >
+                                                    <UserCheck className="w-4 h-4 shrink-0" />
+                                                    {isTrialScheduled ? 'Select Coach & Continue →' : 'Hire Trainer Directly (Skip Trial) →'}
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                    {/* STAGE 2: Waiting for Trainer Approval */}
+                    {currentStep === 2 && (
+                        <div className="max-w-2xl mx-auto py-6 space-y-6">
+                            <div className="bg-slate-900/80 border-2 border-indigo-500/30 rounded-3xl p-6 md:p-8 text-center space-y-6 relative overflow-hidden shadow-2xl">
+                                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto text-indigo-400 shadow-inner">
+                                    <Clock className="w-8 h-8" />
                                 </div>
-                            </AccordionContent>
-                        </AccordionItem>
-                    </Accordion>
+
+                                <div className="space-y-2">
+                                    <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 text-xs px-3 py-1 font-black uppercase tracking-wider">
+                                        Step 2: Under Coach Review
+                                    </Badge>
+                                    <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">
+                                        Waiting for Trainer <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-indigo-400">Approval</span>
+                                    </h2>
+                                    <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
+                                        Your official Personal Training request has been submitted to your preferred coach. They will review your goals and schedule shortly.
+                                    </p>
+                                </div>
+
+                                {/* Selected Coach Summary */}
+                                <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between gap-4 text-left">
+                                    <div className="flex items-center gap-4">
+                                        <img
+                                            src={requestedCoach.image}
+                                            alt={requestedCoach.name}
+                                            className="w-14 h-14 rounded-xl object-cover border border-slate-700"
+                                        />
+                                        <div>
+                                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Selected Coach</p>
+                                            <h4 className="text-lg font-bold text-white">{ptStatus.requestedTrainerName || requestedCoach.name}</h4>
+                                            <p className="text-xs text-slate-400">{requestedCoach.role}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-xs px-2.5 py-1 font-bold">
+                                            Est. Response: &lt; 2 Hours
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                {/* Disabled Main Button + Demo Instant Approval */}
+                                <div className="space-y-3 pt-2">
+                                    <Button
+                                        disabled
+                                        className="w-full h-12 bg-slate-800 border border-slate-700 text-slate-300 font-bold text-sm rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        <Clock className="w-4 h-4 animate-spin text-amber-400" />
+                                        Waiting for Trainer Approval...
+                                    </Button>
+
+                                    <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-800/80">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                localStorage.removeItem('zenith_pt_status');
+                                                localStorage.removeItem('zenith_preferred_trainer_id');
+                                                setPreferredTrainerId(null);
+                                                setPtStatus({});
+                                                window.dispatchEvent(new Event('storage'));
+                                                toast.info("Request reset. You can select another coach.");
+                                            }}
+                                            className="text-xs text-slate-400 hover:text-white"
+                                        >
+                                            Change Selected Coach
+                                        </Button>
+
+                                        {/* Demo Instant Approval helper */}
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleSimulateTrainerApproval}
+                                            className="bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/20 text-xs font-bold gap-1 rounded-lg"
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                            (Demo: Simulate Trainer Approval)
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STAGE 3: Complete Personal Training Payment */}
+                    {currentStep === 3 && (
+                        <div className="max-w-2xl mx-auto py-6 space-y-6">
+                            <div className="bg-slate-900/80 border-2 border-emerald-500/30 rounded-3xl p-6 md:p-8 text-center space-y-6 relative overflow-hidden shadow-2xl">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+                                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400 shadow-inner">
+                                    <CreditCard className="w-8 h-8" />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-xs px-3 py-1 font-black uppercase tracking-wider">
+                                        Step 3: Request Approved — Payment Unlocked
+                                    </Badge>
+                                    <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">
+                                        Complete <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Payment</span>
+                                    </h2>
+                                    <p className="text-slate-300 text-sm max-w-md mx-auto leading-relaxed">
+                                        Coach <strong className="text-white">{ptStatus.requestedTrainerName || requestedCoach.name}</strong> has approved your Personal Training enrollment! Complete your secure payment below to instantly unlock your workout plans.
+                                    </p>
+                                </div>
+
+                                {/* Package Summary Card */}
+                                <div className="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-5 space-y-4 text-left">
+                                    <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                                        <div>
+                                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Personal Training Package</p>
+                                            <h4 className="text-lg font-bold text-white">Elite 1-on-1 Coaching (1 Month)</h4>
+                                            <p className="text-xs text-slate-400">Assigned Coach: {ptStatus.requestedTrainerName || requestedCoach.name}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-2xl font-black text-white">₹9,999</p>
+                                            <p className="text-[11px] text-slate-400">/ 30 Days</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Inclusions Checklists */}
+                                    <div className="space-y-2 text-xs text-slate-300">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            <span>Custom 1-on-1 Workout Programming & Progressive Overload</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            <span>Personalized Nutrition Plan & Daily Macro Targets</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            <span>Daily Coach Check-ins & Video Form Analysis</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            <span>Priority Gym Floor Assistance & Mobility Protocols</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Main Action Button */}
+                                <div className="space-y-3 pt-2">
+                                    <Button
+                                        onClick={handleCompletePayment}
+                                        disabled={isPaying}
+                                        className="w-full h-12 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-base uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-900/30 gap-2 transition-all"
+                                    >
+                                        {isPaying ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                Processing Activation...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CreditCard className="w-5 h-5" />
+                                                Complete Payment — ₹9,999
+                                                <ArrowRight className="w-5 h-5 ml-1" />
+                                            </>
+                                        )}
+                                    </Button>
+
+                                    <p className="text-[11px] text-slate-500">
+                                        🔒 Instant activation upon confirmation. Workouts section unlocks immediately.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
+
+                {/* MODALS: TRAINER PROFILE DIALOG */}
+                <Dialog open={!!activeProfileTrainer} onOpenChange={() => setActiveProfileTrainer(null)}>
+                    <DialogContent className="max-w-2xl bg-slate-950 border border-slate-800 text-white rounded-3xl p-0 overflow-hidden">
+                        {activeProfileTrainer && (
+                            <div>
+                                <div className="relative h-64 w-full">
+                                    <img
+                                        src={activeProfileTrainer.image}
+                                        alt={activeProfileTrainer.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                                    <div className="absolute bottom-4 left-6 right-6">
+                                        <Badge className="bg-indigo-500 text-white font-bold text-xs px-3 py-1 uppercase mb-1">
+                                            {activeProfileTrainer.role}
+                                        </Badge>
+                                        <h3 className="text-3xl font-black text-white">
+                                            {activeProfileTrainer.name}
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                                    {/* Long Bio */}
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-black text-indigo-400 uppercase tracking-widest">About Coach</h4>
+                                        <p className="text-sm text-slate-300 leading-relaxed">
+                                            {activeProfileTrainer.longBio}
+                                        </p>
+                                    </div>
+
+                                    {/* Certifications & Specialties */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
+                                            <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Certifications</h5>
+                                            <ul className="space-y-1">
+                                                {activeProfileTrainer.certifications.map((c, idx) => (
+                                                    <li key={idx} className="text-xs text-white flex items-center gap-1.5 font-medium">
+                                                        <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                                        {c}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
+                                            <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Training Goals</h5>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {activeProfileTrainer.trainingGoals.map((g, idx) => (
+                                                    <Badge key={idx} className="bg-indigo-950/80 text-indigo-300 border-indigo-500/30 text-xs font-semibold">
+                                                        {g}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-900/40 rounded-2xl p-4 border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-300">
+                                        <div>
+                                            <span className="text-slate-500">Regular Schedule:</span>
+                                            <strong className="text-white ml-1">{activeProfileTrainer.availability}</strong>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500">Experience:</span>
+                                            <strong className="text-emerald-400 ml-1">{activeProfileTrainer.experience}</strong>
+                                        </div>
+                                    </div>
+
+                                    <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-800">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setActiveProfileTrainer(null)}
+                                            className="bg-slate-900 border-slate-700 text-white font-bold"
+                                        >
+                                            Close
+                                        </Button>
+                                        {currentStep === 1 && (
+                                            <>
+                                                <Button
+                                                    onClick={() => {
+                                                        const t = activeProfileTrainer;
+                                                        setActiveProfileTrainer(null);
+                                                        setActiveBookingTrainer(t);
+                                                    }}
+                                                    className="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-bold gap-1.5"
+                                                >
+                                                    <Dumbbell className="w-4 h-4" />
+                                                    Book Trial Session
+                                                </Button>
+                                                <Button
+                                                    onClick={() => {
+                                                        const t = activeProfileTrainer;
+                                                        setActiveProfileTrainer(null);
+                                                        handleSendPTRequest(t);
+                                                    }}
+                                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold gap-1.5"
+                                                >
+                                                    <UserCheck className="w-4 h-4" />
+                                                    Hire Trainer Directly
+                                                </Button>
+                                            </>
+                                        )}
+                                    </DialogFooter>
+                                </div>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
+
+                {/* MODALS: TRIAL BOOKING DIALOG */}
+                <Dialog open={!!activeBookingTrainer} onOpenChange={() => setActiveBookingTrainer(null)}>
+                    <DialogContent className="max-w-md bg-slate-950 border border-slate-800 text-white rounded-3xl p-6">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-black uppercase text-white flex items-center gap-2">
+                                <CalendarCheck className="w-5 h-5 text-indigo-400" />
+                                Book Free Trial Session
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-slate-400">
+                                Schedule your complimentary 1-on-1 assessment and consultation with {activeBookingTrainer?.name}.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {activeBookingTrainer && (
+                            <div className="space-y-6 pt-2">
+                                {/* Coach preview badge */}
+                                <div className="flex items-center gap-3 p-3 bg-slate-900/80 rounded-2xl border border-slate-800">
+                                    <img
+                                        src={activeBookingTrainer.image}
+                                        alt={activeBookingTrainer.name}
+                                        className="w-12 h-12 rounded-xl object-cover"
+                                    />
+                                    <div>
+                                        <h4 className="text-sm font-bold text-white">{activeBookingTrainer.name}</h4>
+                                        <p className="text-xs text-indigo-400">{activeBookingTrainer.role}</p>
+                                    </div>
+                                </div>
+
+                                {/* Pick Date */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                                        1. Select Date
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {bookingDates.map((dateObj, idx) => (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => setBookingDateIdx(idx)}
+                                                className={`p-3 rounded-2xl border text-center transition-all ${
+                                                    bookingDateIdx === idx
+                                                        ? 'bg-indigo-950/80 border-indigo-500 text-white shadow-md'
+                                                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                                                }`}
+                                            >
+                                                <p className="text-[10px] font-bold uppercase tracking-wider">{dateObj.label}</p>
+                                                <p className="text-lg font-black">{dateObj.date}</p>
+                                                <p className="text-[10px] text-slate-500">{dateObj.month}</p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Pick Time Slot */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                                        2. Select Time Slot
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {bookingTimeSlots.map((time, idx) => (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => setBookingTime(time)}
+                                                className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
+                                                    bookingTime === time
+                                                        ? 'bg-indigo-600 border-indigo-400 text-white shadow-md'
+                                                        : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                                                }`}
+                                            >
+                                                {time}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <DialogFooter className="flex gap-2 pt-4 border-t border-slate-800">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setActiveBookingTrainer(null)}
+                                        className="w-full bg-slate-900 border-slate-700 text-white"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        disabled={!bookingTime}
+                                        onClick={handleConfirmBooking}
+                                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold"
+                                    >
+                                        Confirm Trial Session
+                                    </Button>
+                                </DialogFooter>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
             </div>
         );
     }
@@ -659,8 +1474,8 @@ export default function MemberPlansPage() {
         );
     }
 
-    const WORKOUT_PLAN = workoutPlan;
-    const DIET_PLAN = dietPlan;
+    const WORKOUT_PLAN = (workoutPlan && Array.isArray((workoutPlan as any).schedule)) ? (workoutPlan as any) : DEFAULT_WORKOUT_PLAN;
+    const DIET_PLAN = (dietPlan && Array.isArray((dietPlan as any).meals) && (dietPlan as any).macros?.protein) ? (dietPlan as any) : DEFAULT_DIET_PLAN;
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 min-h-screen pb-12">
 
@@ -709,346 +1524,418 @@ export default function MemberPlansPage() {
                             {ptStatus.startDate && ptStatus.expiryDate && (
                                 <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex flex-col gap-1 text-left">
                                     <div className="flex justify-between">
-                                        <span className="text-slate-550 font-bold uppercase">Plan Start:</span>
-                                        <span>{formatDate(ptStatus.startDate)}</span>
+                                        <span>Active Since:</span>
+                                        <span className="text-slate-300 font-semibold">{new Date(ptStatus.startDate).toLocaleDateString()}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-slate-550 font-bold uppercase">Plan Expiry:</span>
-                                        <span>{formatDate(ptStatus.expiryDate)}</span>
+                                        <span>Renews On:</span>
+                                        <span className="text-slate-300 font-semibold">{new Date(ptStatus.expiryDate).toLocaleDateString()}</span>
                                     </div>
                                 </div>
                             )}
-                        </div>
-                        <Link href="/member/feedback" className="w-full">
-                            <Button 
-                                variant="outline" 
-                                className="w-full bg-indigo-50/50 hover:bg-indigo-600 text-indigo-600 hover:text-white dark:bg-indigo-950/20 dark:hover:bg-indigo-600 dark:text-indigo-400 dark:hover:text-white border border-indigo-200 dark:border-indigo-500/30 transition-all duration-300 rounded-xl py-5 h-auto text-xs font-black uppercase tracking-widest gap-2"
+
+                            {/* Demo reset button */}
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('zenith_pt_status');
+                                    localStorage.removeItem('zenith_trainer_trials');
+                                    localStorage.removeItem('zenith_preferred_trainer_id');
+                                    setPreferredTrainerId(null);
+                                    setPtStatus({});
+                                    setTrialBookings({});
+                                    window.dispatchEvent(new Event('storage'));
+                                    toast.info("Personal Training Onboarding reset for testing/demo.");
+                                }}
+                                className="mt-3 text-[10px] text-slate-500 hover:text-rose-400 underline transition-colors"
                             >
-                                <MessageSquare className="w-4 h-4" />
-                                Request Revision
-                            </Button>
-                        </Link>
+                                Reset Onboarding (Demo)
+                            </button>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Main Tabs Interface */}
-            <Tabs defaultValue="workout" className="w-full">
-                <div className="flex justify-center md:justify-start mb-8">
-                    <TabsList className="bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-1 rounded-2xl h-14 w-full md:w-auto grid grid-cols-2 gap-1">
-                        <TabsTrigger value="workout" className="rounded-xl data-[state=active]:bg-emerald-500/10 dark:data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:border-emerald-500/30 border border-transparent transition-all px-8 text-base">
-                            <Dumbbell className="w-4 h-4 mr-2" />
-                            Workout Plan
-                        </TabsTrigger>
-                        <TabsTrigger value="diet" className="rounded-xl data-[state=active]:bg-orange-500/10 dark:data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-600 dark:data-[state=active]:text-orange-400 data-[state=active]:border-orange-500/30 border border-transparent transition-all px-8 text-base">
-                            <Flame className="w-4 h-4 mr-2" />
-                            Diet Plan
-                        </TabsTrigger>
-                    </TabsList>
-                </div>
-
-                {/* WORKOUT TAB */}
-                <TabsContent value="workout" className="space-y-6">
-                    {/* Workout Overviews */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <Card className="bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/60 md:col-span-2">
-                            <CardHeader>
-                                <CardTitle className="text-2xl text-slate-800 dark:text-white">{WORKOUT_PLAN.name}</CardTitle>
-                                <CardDescription className="text-base text-emerald-600 dark:text-emerald-400/80">Primary Focus: {WORKOUT_PLAN.focus}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-wrap gap-4">
-                                <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-1.5 px-3">
-                                    <Clock className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
-                                    {WORKOUT_PLAN.duration}
-                                </Badge>
-                                <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-1.5 px-3">
-                                    <Activity className="w-4 h-4 mr-2 text-rose-500 dark:text-rose-400" />
-                                    Intensity: {WORKOUT_PLAN.intensity}
-                                </Badge>
-                                <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-1.5 px-3">
-                                    <Dumbbell className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
-                                    {WORKOUT_PLAN.exercises.length} Exercises
-                                </Badge>
-                            </CardContent>
-                        </Card>
-
-                        <Link href="/member/workout/active" className="block w-full">
-                            <Card className="bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center p-6 text-center group cursor-pointer hover:bg-emerald-100/50 dark:hover:bg-emerald-900/30 transition-colors h-full">
-                                <div className="space-y-3">
-                                    <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                                        <CheckCircle2 className="w-8 h-8" />
-                                    </div>
-                                    <h3 className="text-emerald-750 dark:text-emerald-400 font-semibold text-lg">Start Live Workout</h3>
-                                    <p className="text-sm text-emerald-600/70 dark:text-emerald-500/60">Log today's session</p>
-                                </div>
-                            </Card>
+            {/* Custom Trainer Workout Banner */}
+            <Card className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 border-indigo-500/20 text-white rounded-3xl overflow-hidden relative">
+                <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl" />
+                <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                    <div className="space-y-2 text-center md:text-left">
+                        <div className="flex items-center justify-center md:justify-start gap-2 text-indigo-400 text-xs font-bold tracking-wider uppercase">
+                            <Zap className="w-4 h-4 fill-indigo-400" />
+                            <span>1-on-1 Personalized Programming</span>
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-bold tracking-tight">
+                            Want to modify this plan with your trainer?
+                        </h3>
+                        <p className="text-slate-400 text-sm max-w-xl">
+                            You can request exercise substitutions, adjust workout days, or update your cardio volume directly with your coach.
+                        </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                        <Link href="/member/alerts">
+                            <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl h-11 px-6 shadow-lg shadow-indigo-600/30">
+                                <MessageSquare className="w-4 h-4 mr-2" />
+                                Message Trainer
+                            </Button>
+                        </Link>
+                        <Link href="/member/progress">
+                            <Button variant="outline" className="w-full sm:w-auto border-slate-700 hover:bg-slate-800 text-white font-semibold rounded-xl h-11 px-6">
+                                View Biometrics
+                            </Button>
                         </Link>
                     </div>
+                </CardContent>
+            </Card>
 
-                    {/* Exercises List / Weekly Calendar */}
-                    {weeklyWorkoutPlan ? (
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                                <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <Calendar className="w-5 h-5 text-emerald-500 animate-pulse" />
-                                    Weekly Calendar Schedule
-                                </h3>
-                                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs font-semibold py-1 px-3">
-                                    Calendar View
-                                </Badge>
+            {/* Main Content Tabs */}
+            <Tabs defaultValue="workouts" className="w-full space-y-6">
+                <TabsList className="bg-slate-100 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800/80 w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-auto">
+                    <TabsTrigger
+                        value="workouts"
+                        className="rounded-xl px-6 py-3 font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-indigo-600 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white shadow-none transition-all"
+                    >
+                        <Dumbbell className="w-4 h-4 mr-2 inline-block" />
+                        Workout Plan
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="diet"
+                        className="rounded-xl px-6 py-3 font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-indigo-600 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white shadow-none transition-all"
+                    >
+                        <Utensils className="w-4 h-4 mr-2 inline-block" />
+                        Nutrition & Macros
+                    </TabsTrigger>
+                </TabsList>
+
+                {/* WORKOUT PLAN TAB */}
+                <TabsContent value="workouts" className="space-y-6">
+                    {/* Active Plan Overview Header */}
+                    <Card className="bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 md:p-8">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <Badge className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase">
+                                        {WORKOUT_PLAN.level}
+                                    </Badge>
+                                    <Badge variant="outline" className="text-slate-400 border-slate-700 px-2.5 py-0.5 rounded-full text-xs">
+                                        {WORKOUT_PLAN.goal}
+                                    </Badge>
+                                </div>
+                                <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white uppercase italic tracking-tight">
+                                    {WORKOUT_PLAN.name}
+                                </h2>
+                                <p className="text-slate-400 text-sm max-w-2xl">
+                                    {WORKOUT_PLAN.description}
+                                </p>
                             </div>
-                            <div className="space-y-4">
-                                {DAYS.map((day) => {
-                                    const exercises = weeklyWorkoutPlan.weeklyPlan[day] || [];
-                                    const isToday = day === todayName;
-                                    const grouped = groupExercises(exercises);
 
-                                    return (
-                                        <Card key={day} className={`bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-900 hover:border-slate-300 dark:hover:border-slate-800/80 transition-all duration-300 overflow-hidden ${isToday ? 'ring-1 ring-emerald-500/50 border-emerald-500/30 bg-emerald-500/[0.01]' : ''}`}>
-                                            <CardHeader className="p-4 bg-slate-50/50 dark:bg-slate-950/40 flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-900/50">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`w-2 h-2 rounded-full ${isToday ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'bg-slate-600'}`} />
-                                                    <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200">{day} {isToday && <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium ml-1.5">(Today's Workout)</span>}</h4>
-                                                </div>
-                                                <span className="text-xs text-slate-400 font-mono">
-                                                    {exercises.length === 0 ? 'Rest Day' : `${exercises.length} Exercises`}
-                                                </span>
-                                            </CardHeader>
-                                            <CardContent className="p-4 space-y-4">
-                                                {exercises.length === 0 ? (
-                                                    <div className="py-6 flex flex-col items-center justify-center text-center text-slate-500 bg-slate-50 dark:bg-slate-950/10 rounded-xl border border-slate-200 dark:border-slate-900 border-dashed">
-                                                        <Activity className="w-5 h-5 mb-1.5 text-slate-400" />
-                                                        <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Rest & Recovery</p>
-                                                        <p className="text-[9px] text-slate-500 mt-0.5">Focus on recovery, stretching, and nutrition.</p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-3">
-                                                        {grouped.map((group, groupIdx) => {
-                                                            if (group.type === 'superset') {
-                                                                    const groupName = group.groupName || 'A';
-                                                                    const borderClass = groupName === 'A' ? 'border-fuchsia-500/30 bg-fuchsia-500/[0.01]' : 
-                                                                                        groupName === 'B' ? 'border-indigo-500/30 bg-indigo-500/[0.01]' : 
-                                                                                        'border-cyan-500/30 bg-cyan-500/[0.01]';
-                                                                    const textClass = groupName === 'A' ? 'text-fuchsia-400' : 
-                                                                                      groupName === 'B' ? 'text-indigo-400' : 
-                                                                                      'text-cyan-400';
-                                                                    const badgeBg = groupName === 'A' ? 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20' :
-                                                                                    groupName === 'B' ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' :
-                                                                                    'bg-cyan-500/10 text-cyan-300 border-cyan-500/20';
-                                                                
-                                                                return (
-                                                                    <div key={groupIdx} className={`border rounded-xl p-3.5 space-y-3 ${borderClass}`}>
-                                                                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-900/50">
-                                                                            <span className={`text-[10px] font-black uppercase tracking-wider ${textClass}`}>
-                                                                                {groupName === 'C' ? 'Circuit Group C' : `Superset Group ${groupName}`}
-                                                                            </span>
-                                                                            <Badge className={`${badgeBg} text-[8px] uppercase font-mono font-bold tracking-wider`}>
-                                                                                No rest between exercises
-                                                                            </Badge>
-                                                                        </div>
-                                                                        <div className="space-y-3.5">
-                                                                            {group.items.map((ex) => (
-                                                                                <div key={ex.id} className="pl-3.5 border-l border-slate-200 dark:border-slate-800 space-y-1.5 last:mb-0">
-                                                                                    <div className="flex justify-between items-start gap-2">
-                                                                                        <div>
-                                                                                            <h5 className="font-bold text-sm text-slate-700 dark:text-slate-200">{ex.name}</h5>
-                                                                                            <p className="text-[10px] text-slate-500 font-medium">{ex.target}</p>
-                                                                                        </div>
-                                                                                        <div className="flex flex-wrap gap-1.5 text-[10px] font-mono shrink-0">
-                                                                                            <span className="bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-250 dark:border-slate-800 text-slate-600 dark:text-slate-300">{ex.sets} Sets</span>
-                                                                                            <span className="bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-250 dark:border-slate-800 text-slate-600 dark:text-slate-300">{ex.reps} Reps</span>
-                                                                                            {ex.weight && <span className="bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-250 dark:border-slate-800 text-slate-600 dark:text-slate-300">{ex.weight}</span>}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    {(ex.duration || ex.rest || ex.notes) && (
-                                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 text-[10px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/40 p-2 rounded-lg border border-slate-200 dark:border-slate-900/50">
-                                                                                            {ex.duration && <div><span className="text-slate-500 font-bold uppercase tracking-wider text-[8px] mr-1">Duration:</span>{ex.duration}</div>}
-                                                                                            {ex.rest && <div><span className="text-slate-500 font-bold uppercase tracking-wider text-[8px] mr-1">Rest:</span>{ex.rest}</div>}
-                                                                                            {ex.notes && <div className="sm:col-span-2 md:col-span-3"><span className="text-slate-500 font-bold uppercase tracking-wider text-[8px] mr-1">Coaching Note:</span>{ex.notes}</div>}
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            } else {
-                                                                const ex = group.items[0];
-                                                                return (
-                                                                    <div key={ex.id} className="border border-slate-200 dark:border-slate-900 bg-slate-50/50 dark:bg-slate-900/10 rounded-xl p-3.5 space-y-1.5">
-                                                                        <div className="flex justify-between items-start gap-2">
-                                                                            <div>
-                                                                                <h5 className="font-bold text-sm text-slate-700 dark:text-slate-200">{ex.name}</h5>
-                                                                                <p className="text-[10px] text-slate-500 font-medium">{ex.target}</p>
-                                                                            </div>
-                                                                            <div className="flex flex-wrap gap-1.5 text-[10px] font-mono shrink-0">
-                                                                                <span className="bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-250 dark:border-slate-800 text-slate-600 dark:text-slate-300">{ex.sets} Sets</span>
-                                                                                <span className="bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-250 dark:border-slate-800 text-slate-600 dark:text-slate-300">{ex.reps} Reps</span>
-                                                                                {ex.weight && <span className="bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-250 dark:border-slate-800 text-slate-600 dark:text-slate-300">{ex.weight}</span>}
-                                                                            </div>
-                                                                        </div>
-                                                                        {(ex.duration || ex.rest || ex.notes) && (
-                                                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 text-[10px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/40 p-2 rounded-lg border border-slate-200 dark:border-slate-900/50">
-                                                                                {ex.duration && <div><span className="text-slate-500 font-bold uppercase tracking-wider text-[8px] mr-1">Duration:</span>{ex.duration}</div>}
-                                                                                {ex.rest && <div><span className="text-slate-500 font-bold uppercase tracking-wider text-[8px] mr-1">Rest:</span>{ex.rest}</div>}
-                                                                                {ex.notes && <div className="sm:col-span-2 md:col-span-3"><span className="text-slate-500 font-bold uppercase tracking-wider text-[8px] mr-1">Coaching Note:</span>{ex.notes}</div>}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            }
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })}
+                            <div className="flex flex-wrap items-center gap-4 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+                                <div className="text-center px-4 border-r border-slate-800">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold">Duration</p>
+                                    <p className="text-base font-black text-white mt-0.5">{WORKOUT_PLAN.duration}</p>
+                                </div>
+                                <div className="text-center px-4 border-r border-slate-800">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold">Frequency</p>
+                                    <p className="text-base font-black text-white mt-0.5">{WORKOUT_PLAN.frequency}</p>
+                                </div>
+                                <div className="text-center px-4">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold">Assigned By</p>
+                                    <p className="text-base font-black text-indigo-400 mt-0.5">{WORKOUT_PLAN.trainer}</p>
+                                </div>
                             </div>
                         </div>
-                    ) : (
-                        <Card className="bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/60">
-                            <CardHeader>
-                                <CardTitle className="text-slate-800 dark:text-white flex items-center gap-2">
-                                    <ChevronRight className="w-5 h-5 text-emerald-500" />
-                                    Today's Routine
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Accordion type="multiple" className="w-full">
-                                    {WORKOUT_PLAN.exercises.map((exercise, index) => (
-                                        <AccordionItem key={exercise.id} value={`item-${index}`} className="border-slate-100 dark:border-slate-800">
-                                            <AccordionTrigger className="hover:no-underline text-left group">
-                                                <div className="flex items-center gap-4 w-full pr-4">
-                                                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors">
-                                                        {index + 1}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h4 className="text-lg font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{exercise.name}</h4>
-                                                        <p className="text-sm text-slate-500">{exercise.target}</p>
-                                                    </div>
-                                                    <div className="hidden sm:flex items-center gap-4 text-sm font-medium text-slate-500 dark:text-slate-400">
-                                                        <span className="bg-slate-50 dark:bg-slate-950 px-3 py-1 rounded-md border border-slate-200 dark:border-slate-800">{exercise.sets} Sets</span>
-                                                        <span className="bg-slate-50 dark:bg-slate-950 px-3 py-1 rounded-md border border-slate-200 dark:border-slate-800">{exercise.reps} Reps</span>
-                                                    </div>
+                    </Card>
+
+                    {/* Today's Workout Focus */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-xl font-bold text-white tracking-tight">
+                                Weekly Schedule & Routines
+                            </h3>
+                            <p className="text-slate-400 text-xs">
+                                Click on any day to inspect the programmed exercises, sets, reps, and supersets.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Schedule Accordion */}
+                    <Accordion
+                        type="single"
+                        collapsible
+                        defaultValue={`day-${DAYS.indexOf(todayName) !== -1 ? DAYS.indexOf(todayName) : 0}`}
+                        className="space-y-4"
+                    >
+                        {WORKOUT_PLAN.schedule.map((daySchedule: any, index: number) => {
+                            const isToday = DAYS[index] === todayName;
+                            const exerciseGroups = groupExercises(daySchedule.exercises);
+
+                            return (
+                                <AccordionItem
+                                    key={index}
+                                    value={`day-${index}`}
+                                    className={`border rounded-3xl overflow-hidden transition-all duration-300 ${isToday
+                                        ? 'bg-gradient-to-r from-indigo-950/30 via-slate-900/50 to-indigo-950/20 border-indigo-500/40 shadow-lg shadow-indigo-500/5'
+                                        : 'bg-white dark:bg-slate-900/20 border-slate-200 dark:border-slate-800/80 hover:border-slate-700'
+                                        }`}
+                                >
+                                    <AccordionTrigger className="px-6 py-5 hover:no-underline group">
+                                        <div className="flex items-center justify-between w-full pr-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${isToday
+                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-700 group-hover:text-white'
+                                                    }`}>
+                                                    D{index + 1}
                                                 </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent className="pt-4 pb-6 px-14 text-slate-500 dark:text-slate-400">
-                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                                                    <div className="space-y-1">
-                                                        <p className="text-xs uppercase tracking-wider text-slate-500">Sets</p>
-                                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{exercise.sets}</p>
+                                                <div className="text-left">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
+                                                            {DAYS[index]}
+                                                        </span>
+                                                        {isToday && (
+                                                            <Badge className="bg-indigo-500 text-white text-[10px] px-2 py-0 h-4 font-black uppercase">
+                                                                Today
+                                                            </Badge>
+                                                        )}
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-xs uppercase tracking-wider text-slate-500">Reps</p>
-                                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{exercise.reps}</p>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-xs uppercase tracking-wider text-slate-500">Rest</p>
-                                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{exercise.rest}</p>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-xs uppercase tracking-wider text-slate-500">Target</p>
-                                                        <p className="text-sm font-medium text-slate-800 dark:text-white">{exercise.target}</p>
-                                                    </div>
+                                                    <h4 className="text-lg font-bold text-slate-800 dark:text-white mt-0.5">
+                                                        {daySchedule.day}
+                                                    </h4>
                                                 </div>
-                                                <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700/50 p-4 rounded-xl flex gap-3">
-                                                    <Info className="w-5 h-5 text-blue-500 dark:text-blue-400 flex-shrink-0" />
-                                                    <p className="text-sm">{exercise.notes}</p>
-                                                </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    ))}
-                                </Accordion>
-                            </CardContent>
-                        </Card>
-                    )}
+                                            </div>
+
+                                            <div className="flex items-center gap-3">
+                                                <Badge
+                                                    variant="outline"
+                                                    className={`hidden sm:inline-flex px-3 py-1 rounded-full text-xs font-semibold ${daySchedule.day === 'Rest Day' || daySchedule.day.includes('Rest')
+                                                        ? 'bg-slate-500/10 text-slate-400 border-slate-700'
+                                                        : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                                                        }`}
+                                                >
+                                                    {daySchedule.focus}
+                                                </Badge>
+                                                <span className="text-xs text-slate-500 font-medium">
+                                                    {daySchedule.exercises.length} Exercises
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </AccordionTrigger>
+
+                                    <AccordionContent className="px-6 pb-6 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                                        {daySchedule.exercises.length === 0 ? (
+                                            <div className="py-8 text-center text-slate-500 text-sm">
+                                                <p>Active recovery day. Focus on hydration, stretching, and light mobility work.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4 pt-4">
+                                                {exerciseGroups.map((group, groupIdx) => {
+                                                    if (group.type === 'superset') {
+                                                        return (
+                                                            <div
+                                                                key={groupIdx}
+                                                                className="bg-indigo-950/20 border-2 border-indigo-500/30 rounded-2xl p-4 md:p-5 relative overflow-hidden space-y-4"
+                                                            >
+                                                                <div className="flex items-center justify-between">
+                                                                    <Badge className="bg-indigo-500 text-white font-black text-[10px] px-2.5 py-0.5 uppercase tracking-wider">
+                                                                        🔥 Superset Group {group.groupName}
+                                                                    </Badge>
+                                                                    <span className="text-xs text-indigo-400 font-medium">
+                                                                        Perform back-to-back with minimal rest
+                                                                    </span>
+                                                                </div>
+
+                                                                <div className="space-y-3">
+                                                                    {group.items.map((ex: any, idx: number) => (
+                                                                        <div
+                                                                            key={idx}
+                                                                            className="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                                                                        >
+                                                                            <div className="space-y-1">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 font-black text-xs flex items-center justify-center">
+                                                                                        {idx + 1}
+                                                                                    </span>
+                                                                                    <h5 className="font-bold text-white text-base">
+                                                                                        {ex.name}
+                                                                                    </h5>
+                                                                                </div>
+                                                                                {EXERCISE_INSTRUCTIONS[ex.name] && (
+                                                                                    <p className="text-xs text-slate-400 pl-8">
+                                                                                        {EXERCISE_INSTRUCTIONS[ex.name][0]}
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+
+                                                                            <div className="flex items-center gap-3 pl-8 md:pl-0">
+                                                                                <div className="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-center min-w-[70px]">
+                                                                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Sets</p>
+                                                                                    <p className="text-sm font-bold text-white">{ex.sets}</p>
+                                                                                </div>
+                                                                                <div className="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-center min-w-[70px]">
+                                                                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Reps</p>
+                                                                                    <p className="text-sm font-bold text-white">{ex.reps}</p>
+                                                                                </div>
+                                                                                <div className="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-center min-w-[70px]">
+                                                                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Rest</p>
+                                                                                    <p className="text-sm font-bold text-indigo-400">{ex.rest}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    const ex = group.items[0];
+                                                    return (
+                                                        <div
+                                                            key={groupIdx}
+                                                            className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-colors"
+                                                        >
+                                                            <div className="space-y-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="w-6 h-6 rounded-lg bg-slate-800 text-slate-400 font-black text-xs flex items-center justify-center">
+                                                                        {groupIdx + 1}
+                                                                    </span>
+                                                                    <h5 className="font-bold text-slate-800 dark:text-white text-base">
+                                                                        {ex.name}
+                                                                    </h5>
+                                                                </div>
+                                                                {EXERCISE_INSTRUCTIONS[ex.name] && (
+                                                                    <p className="text-xs text-slate-400 pl-8">
+                                                                        {EXERCISE_INSTRUCTIONS[ex.name][0]}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex items-center gap-3 pl-8 md:pl-0">
+                                                                <div className="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-center min-w-[70px]">
+                                                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Sets</p>
+                                                                    <p className="text-sm font-bold text-white">{ex.sets}</p>
+                                                                </div>
+                                                                <div className="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-center min-w-[70px]">
+                                                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Reps</p>
+                                                                    <p className="text-sm font-bold text-white">{ex.reps}</p>
+                                                                </div>
+                                                                <div className="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-center min-w-[70px]">
+                                                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Rest</p>
+                                                                    <p className="text-sm font-bold text-indigo-400">{ex.rest}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+
+                                                {/* Start Workout Button for today */}
+                                                {isToday && (
+                                                    <div className="pt-4 flex justify-end">
+                                                        <Link href="/member/workout/active">
+                                                            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 h-12 rounded-xl shadow-lg shadow-indigo-600/30 gap-2">
+                                                                <Flame className="w-4 h-4 fill-white" />
+                                                                Start Workout Session
+                                                                <ArrowRight className="w-4 h-4" />
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            );
+                        })}
+                    </Accordion>
                 </TabsContent>
 
-                {/* DIET TAB */}
+                {/* DIET & NUTRITION TAB */}
                 <TabsContent value="diet" className="space-y-6">
-                    {/* Diet Overview & Macros */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/60">
-                            <CardHeader>
-                                <CardTitle className="text-2xl text-slate-800 dark:text-white">{DIET_PLAN.name}</CardTitle>
-                                <CardDescription className="text-base text-orange-600 dark:text-orange-400/80">Goal: {DIET_PLAN.goal}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800 mt-2">
-                                    <div className="p-3 bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-xl">
-                                        <Flame className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-slate-550 dark:text-slate-400 uppercase tracking-wider">Daily Target</p>
-                                        <p className="text-3xl font-black text-slate-800 dark:text-white">{DIET_PLAN.dailyCalories} <span className="text-lg font-normal text-slate-550 dark:text-slate-500">kcal</span></p>
-                                    </div>
+                    {/* Diet Overview Header */}
+                    <Card className="bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 md:p-8">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div className="space-y-2">
+                                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase">
+                                    {DIET_PLAN.type} Nutrition Plan
+                                </Badge>
+                                <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white uppercase italic tracking-tight">
+                                    {DIET_PLAN.name}
+                                </h2>
+                                <p className="text-slate-400 text-sm max-w-2xl">
+                                    {DIET_PLAN.description}
+                                </p>
+                            </div>
+
+                            {/* Macro Targets Summary */}
+                            <div className="grid grid-cols-4 gap-2 md:gap-4 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+                                <div className="text-center px-2">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold">Calories</p>
+                                    <p className="text-base font-black text-white mt-0.5">{DIET_PLAN.dailyCalories}</p>
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <div className="text-center px-2">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold">Protein</p>
+                                    <p className="text-base font-black text-emerald-400 mt-0.5">{DIET_PLAN.macros.protein}</p>
+                                </div>
+                                <div className="text-center px-2">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold">Carbs</p>
+                                    <p className="text-base font-black text-blue-400 mt-0.5">{DIET_PLAN.macros.carbs}</p>
+                                </div>
+                                <div className="text-center px-2">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold">Fats</p>
+                                    <p className="text-base font-black text-amber-400 mt-0.5">{DIET_PLAN.macros.fats}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
 
-                        {/* Macro Breakdown */}
-                        <Card className="bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/60">
-                            <CardHeader className="pb-4">
-                                <CardTitle className="text-lg text-slate-800 dark:text-white font-medium flex items-center gap-2">
-                                    <PieChart className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                                    Macro Targets
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-5">
-                                {Object.entries(DIET_PLAN.macros).map(([key, macro]) => (
-                                    <div key={key} className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="font-medium text-slate-700 dark:text-slate-300">{macro.label}</span>
-                                            <span className="text-slate-500 dark:text-slate-400 font-mono">
-                                                {macro.current} / <span className="text-slate-800 dark:text-white font-bold">{macro.target}</span>
-                                            </span>
+                    {/* Daily Meals Breakdown */}
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white tracking-tight">
+                            Daily Meal Schedule
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {DIET_PLAN.meals.map((meal: any, idx: number) => (
+                                <Card
+                                    key={idx}
+                                    className="bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 space-y-4 hover:border-slate-700 transition-colors"
+                                >
+                                    <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/60">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-black">
+                                                <Utensils className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 dark:text-white text-base">
+                                                    {meal.meal}
+                                                </h4>
+                                                <p className="text-xs text-slate-400">{meal.time}</p>
+                                            </div>
                                         </div>
-                                        <Progress value={(macro.current / macro.target) * 100} className={`h-2 [&>div]:${macro.color}`} />
+                                        <Badge className="bg-slate-800 text-slate-300 border-slate-700 font-bold">
+                                            {meal.calories} kcal
+                                        </Badge>
                                     </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    </div>
 
-                    {/* Meal Schedule */}
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white pt-4 pb-2 flex items-center gap-2">
-                        <Utensils className="w-6 h-6 text-orange-500" />
-                        Today's Meals
-                    </h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {DIET_PLAN.meals.map((meal) => (
-                            <Card key={meal.id} className="bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/60 hover:border-orange-500/30 transition-colors group">
-                                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-orange-600 dark:text-orange-400 uppercase tracking-wider">{meal.type}</p>
-                                        <CardTitle className="text-xl text-slate-800 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-50">{meal.name}</CardTitle>
+                                    <div className="space-y-2">
+                                        <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
+                                            Recommended Items
+                                        </p>
+                                        <ul className="space-y-1.5">
+                                            {meal.items.map((item: string, i: number) => (
+                                                <li key={i} className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                                                    {item}
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
-                                    <Badge variant="outline" className="bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                                        <Clock className="w-3.5 h-3.5 mr-1.5 text-slate-500 dark:text-slate-400" />
-                                        {meal.time}
-                                    </Badge>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-2 mt-2">
-                                        {meal.foods.map((food, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-slate-500 dark:text-slate-400 text-sm">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600 mt-1.5" />
-                                                {food}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                                <CardFooter className="pt-4 border-t border-slate-100 dark:border-slate-800/50 flex justify-between items-center text-sm">
-                                    <span className="text-slate-500">Estimated</span>
-                                    <span className="font-bold text-slate-700 dark:text-white bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-md border border-slate-200 dark:border-slate-700">
-                                        {meal.calories} kcal
-                                    </span>
-                                </CardFooter>
-                            </Card>
-                        ))}
-                    </div>
 
+                                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+                                        <span>Target Protein:</span>
+                                        <strong className="text-white">{meal.protein || '35g'}</strong>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>

@@ -275,26 +275,27 @@ export default function SteamMassagePage() {
                                             : 'border-white/5 ring-transparent bg-white/[0.01]'
                                         }`}
                                     >
-                                        {service.isPremium && (
-                                            <div className="absolute -right-10 top-4 rotate-45 bg-gradient-to-r from-primary to-accent py-1 px-12 shadow-lg z-20">
-                                                <span className="text-[9px] font-black text-black uppercase tracking-[0.2em]">Premium</span>
+                                        <div className="flex justify-between items-start w-full relative z-10">
+                                            <div className={`p-4 rounded-2xl transition-all duration-300 ${
+                                                selectedService?.id === service.id ? 'bg-primary/20 scale-110' : 'bg-black/20 dark:bg-white/5'
+                                            }`}>
+                                                <service.icon className={`w-8 h-8 ${
+                                                    selectedService?.id === service.id ? 'text-primary' : 'text-slate-400 group-hover:text-primary'
+                                                }`} />
                                             </div>
-                                        )}
-
-                                        {serviceStatuses[service.id] === 'Maintenance' && (
-                                            <div className="absolute left-4 top-4 bg-rose-600 py-1 px-3 rounded-lg shadow-lg z-20">
-                                                <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1">
-                                                    <AlertTriangle className="w-3 h-3" /> Maintenance
-                                                </span>
+                                            
+                                            <div className="flex flex-col gap-2 items-end">
+                                                {service.isPremium && (
+                                                    <Badge className="bg-primary/10 border border-primary/20 hover:bg-primary/20 text-primary text-[9px] font-black uppercase tracking-[0.1em] rounded-lg px-2.5 py-1">
+                                                        Premium
+                                                    </Badge>
+                                                )}
+                                                {serviceStatuses[service.id] === 'Maintenance' && (
+                                                    <Badge className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[9px] font-black uppercase tracking-[0.1em] rounded-lg px-2.5 py-1 flex items-center gap-1">
+                                                        <AlertTriangle className="w-3 h-3 text-rose-400" /> Maint.
+                                                    </Badge>
+                                                )}
                                             </div>
-                                        )}
-                                        
-                                        <div className={`p-4 rounded-2xl transition-all duration-300 ${
-                                            selectedService?.id === service.id ? 'bg-primary/20 scale-110' : 'bg-black/20 dark:bg-white/5'
-                                        }`}>
-                                            <service.icon className={`w-8 h-8 ${
-                                                selectedService?.id === service.id ? 'text-primary' : 'text-slate-400 group-hover:text-primary'
-                                            }`} />
                                         </div>
 
                                         <div className="space-y-1 pr-8">

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, Download, CreditCard, TrendingUp, AlertCircle, FileText, CheckCircle2, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { getStoredTransactions, addTransaction, Transaction } from '@/lib/transactions-store';
+import { getStoredTransactions, addTransaction, Transaction, settleSecondInstallment } from '@/lib/transactions-store';
 
 const isSameDay = (d1: Date, d2: Date) => {
     return d1.getFullYear() === d2.getFullYear() &&
@@ -99,7 +99,18 @@ export default function PaymentsPanel() {
             const matchesSearch = trx.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 trx.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 trx.desc.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesStatus = filterStatus === 'All' || trx.status === filterStatus;
+            const isInstallmentTrx = trx.status === 'Partially Paid' ||
+                trx.status === 'Pending' ||
+                trx.status === 'Installment' ||
+                trx.method === 'Installment Payment' ||
+                !!trx.installmentDetails ||
+                (trx.outstandingBalance !== undefined && trx.outstandingBalance > 0);
+
+            const matchesStatus =
+                filterStatus === 'All' ||
+                ((filterStatus === 'Installment' || filterStatus === 'Installation') && isInstallmentTrx) ||
+                (filterStatus === 'Completed' && (trx.status === 'Completed' || trx.status === 'Paid')) ||
+                trx.status === (filterStatus as any);
 
             // Filter by Date
             const matchesDate = matchesDateRange(trx.rawDate, dateRange, customStartDate, customEndDate);
@@ -110,19 +121,35 @@ export default function PaymentsPanel() {
 
     const getStatusStyle = (status: string) => {
         switch (status) {
-            case 'Completed': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-            case 'Pending': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-            case 'Failed': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-            default: return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+            case 'Completed':
+            case 'Paid':
+                return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+            case 'Pending':
+            case 'Partially Paid':
+            case 'Installment':
+            case 'Installation':
+                return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+            case 'Failed':
+                return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+            default:
+                return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
         }
     };
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'Completed': return <CheckCircle2 className="w-3.5 h-3.5" />;
-            case 'Pending': return <TrendingUp className="w-3.5 h-3.5" />;
-            case 'Failed': return <AlertCircle className="w-3.5 h-3.5" />;
-            default: return null;
+            case 'Completed':
+            case 'Paid':
+                return <CheckCircle2 className="w-3.5 h-3.5" />;
+            case 'Pending':
+            case 'Partially Paid':
+            case 'Installment':
+            case 'Installation':
+                return <TrendingUp className="w-3.5 h-3.5" />;
+            case 'Failed':
+                return <AlertCircle className="w-3.5 h-3.5" />;
+            default:
+                return null;
         }
     };
 
@@ -430,7 +457,7 @@ export default function PaymentsPanel() {
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     {/* Status Pills - scrollable */}
                     <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 flex-1 md:flex-none">
-                        {['All', 'Completed', 'Pending', 'Failed'].map(status => (
+                        {['All', 'Completed', 'Installment', 'Failed'].map(status => (
                             <button
                                 key={status}
                                 onClick={() => setFilterStatus(status)}
@@ -571,16 +598,38 @@ export default function PaymentsPanel() {
                                         <div className="font-mono text-sm text-slate-300">{trx.id}</div>
                                     </td>
                                     <td className="p-4">
-                                        <div className="font-semibold text-foreground">{trx.name}</div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-foreground">{trx.name}</span>
+                                            {trx.discountPercentage && trx.discountPercentage > 0 ? (
+                                                <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                                                    {trx.discountPercentage}% OFF
+                                                </span>
+                                            ) : null}
+                                            {trx.promoOffer ? (
+                                                <span className="px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary border border-primary/20 font-bold">
+                                                    ✨ {trx.promoOffer.name}
+                                                </span>
+                                            ) : null}
+                                        </div>
                                         <div className="text-xs text-muted-foreground">{trx.desc}</div>
+                                        {trx.upiTransactionId && (
+                                            <span className="text-[10px] text-cyan-400 block font-mono mt-0.5">
+                                                UTR: {trx.upiTransactionId}
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="p-4">
                                         <div className="font-bold text-foreground">₹{trx.amount.toLocaleString()}</div>
+                                        {trx.outstandingBalance && trx.outstandingBalance > 0 ? (
+                                            <span className="text-[10px] text-amber-400 block font-semibold mt-0.5">
+                                                Due: ₹{trx.outstandingBalance.toLocaleString()} ({trx.installmentDetails?.dueDate || 'Inst 2'})
+                                            </span>
+                                        ) : null}
                                     </td>
                                     <td className="p-4">
-                                        <span className={`px-3 py-1.5 text-xs font-medium rounded-full border flex items-center gap-1.5 w-fit ${getStatusStyle(trx.status)}`}>
-                                            {getStatusIcon(trx.status)}
-                                            {trx.status}
+                                        <span className={`px-3 py-1.5 text-xs font-medium rounded-full border flex items-center gap-1.5 w-fit ${getStatusStyle(trx.paymentStatus || trx.status)}`}>
+                                            {getStatusIcon(trx.paymentStatus || trx.status)}
+                                            {(trx.status === 'Partially Paid' || trx.paymentStatus === 'Partially Paid' || trx.status === 'Pending' || trx.method === 'Installment Payment' || !!trx.installmentDetails) ? 'Installment' : (trx.paymentStatus || trx.status)}
                                         </span>
                                     </td>
                                     <td className="p-4">
@@ -591,7 +640,22 @@ export default function PaymentsPanel() {
                                         </div>
                                     </td>
                                     <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-end gap-2">
+                                            {((trx.status === 'Partially Paid' || trx.paymentStatus === 'Partially Paid') && trx.outstandingBalance && trx.outstandingBalance > 0) && (
+                                                <button
+                                                    onClick={() => {
+                                                        const result = settleSecondInstallment(trx.id, trx.receptionist || 'Sarah Jenkins');
+                                                        if (result.success) {
+                                                            toast.success(`Collected 2nd Installment of ₹${result.settledAmount.toLocaleString()} for ${trx.name}! Status updated to Paid.`);
+                                                        } else {
+                                                            toast.error(result.error || "Failed to settle installment.");
+                                                        }
+                                                    }}
+                                                    className="px-3 py-1.5 rounded-lg text-xs font-black bg-amber-500 text-black hover:bg-amber-400 transition-colors shadow-glow flex items-center gap-1"
+                                                >
+                                                    Collect 2nd Inst (₹{trx.outstandingBalance.toLocaleString()})
+                                                </button>
+                                            )}
                                             <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 transition-colors border border-white/10 text-foreground">
                                                 Receipt
                                             </button>

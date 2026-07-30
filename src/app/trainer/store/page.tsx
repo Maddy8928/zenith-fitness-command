@@ -9,12 +9,12 @@ import Link from 'next/link';
 
 // Mock Data
 const PRODUCTS = [
-    { id: '1', name: 'Nexus Whey Isolate', category: 'SUPPLEMENTS', price: 4199, rating: 4.9, src: 'https://images.unsplash.com/photo-1579722820308-d74e571900a9?q=80&w=600&auto=format&fit=crop', tag: 'Bestseller' },
-    { id: '2', name: 'Titan Pre-Workout', category: 'SUPPLEMENTS', price: 3299, rating: 4.8, src: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?q=80&w=600&auto=format&fit=crop' },
-    { id: '3', name: 'Zenith BCAA Recovery', category: 'SUPPLEMENTS', price: 2499, rating: 4.7, src: 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?q=80&w=600&auto=format&fit=crop' },
-    { id: '4', name: 'Pro Powerlifting Belt', category: 'GEAR', price: 7499, rating: 5.0, src: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=600&auto=format&fit=crop', tag: 'Premium' },
-    { id: '5', name: 'Nexus Compression Tee', category: 'APPAREL', price: 2999, rating: 4.6, src: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=600&auto=format&fit=crop' },
-    { id: '6', name: 'Elite Wrist Wraps', category: 'GEAR', price: 1699, rating: 4.5, src: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop' },
+    { id: '1', name: 'Nexus Whey Isolate', category: 'SUPPLEMENTS', price: 4199, rating: 4.9, src: '/images/store/nexus-whey-isolate.png', tag: 'Bestseller' },
+    { id: '2', name: 'Titan Pre-Workout', category: 'SUPPLEMENTS', price: 3299, rating: 4.8, src: '/images/store/titan-pre-workout.png' },
+    { id: '3', name: 'Zenith BCAA Recovery', category: 'SUPPLEMENTS', price: 2499, rating: 4.7, src: '/images/store/zenith-bcaa-recovery.png' },
+    { id: '4', name: 'Pro Powerlifting Belt', category: 'GEAR', price: 7499, rating: 5.0, src: '/images/store/pro-powerlifting-belt.png', tag: 'Premium' },
+    { id: '5', name: 'Nexus Compression Tee', category: 'APPAREL', price: 2999, rating: 4.6, src: '/images/store/nexus-compression-tee.png' },
+    { id: '6', name: 'Elite Wrist Wraps', category: 'GEAR', price: 1699, rating: 4.5, src: '/images/store/elite-wrist-wraps.png' },
 ];
 
 const CATEGORIES = ['ALL', 'SUPPLEMENTS', 'GEAR', 'APPAREL'];

@@ -12,12 +12,12 @@ import { useNotifications } from '@/context/NotificationContext';
 
 // Mock Inventory Data
 const INVENTORY = [
-    { id: '1', name: 'Nexus Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', price: 4199, stock: 145, status: 'Active', src: 'https://images.unsplash.com/photo-1579722820308-d74e571900a9?q=80&w=600&auto=format&fit=crop' },
-    { id: '2', name: 'Titan Pre-Workout', sku: 'NX-PRE-02', category: 'Supplements', price: 3299, stock: 12, status: 'Low Stock', src: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?q=80&w=600&auto=format&fit=crop' },
-    { id: '3', name: 'Zenith BCAA Recovery', sku: 'NX-BCAA-03', category: 'Supplements', price: 2499, stock: 85, status: 'Active', src: 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?q=80&w=600&auto=format&fit=crop' },
-    { id: '4', name: 'Pro Powerlifting Belt', sku: 'GR-BELT-01', category: 'Gear', price: 7499, stock: 4, status: 'Critical', src: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=600&auto=format&fit=crop' },
-    { id: '5', name: 'Nexus Compression Tee', sku: 'AP-TEE-01', category: 'Apparel', price: 2999, stock: 54, status: 'Active', src: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=600&auto=format&fit=crop' },
-    { id: '6', name: 'Elite Wrist Wraps', sku: 'GR-WRAP-02', category: 'Gear', price: 1699, stock: 0, status: 'Out of Stock', src: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop' },
+    { id: '1', name: 'Nexus Whey Isolate', sku: 'NX-WHEY-01', category: 'Supplements', price: 4199, stock: 145, status: 'Active', src: '/images/store/nexus-whey-isolate.png' },
+    { id: '2', name: 'Titan Pre-Workout', sku: 'NX-PRE-02', category: 'Supplements', price: 3299, stock: 12, status: 'Low Stock', src: '/images/store/titan-pre-workout.png' },
+    { id: '3', name: 'Zenith BCAA Recovery', sku: 'NX-BCAA-03', category: 'Supplements', price: 2499, stock: 85, status: 'Active', src: '/images/store/zenith-bcaa-recovery.png' },
+    { id: '4', name: 'Pro Powerlifting Belt', sku: 'GR-BELT-01', category: 'Gear', price: 7499, stock: 4, status: 'Critical', src: '/images/store/pro-powerlifting-belt.png' },
+    { id: '5', name: 'Nexus Compression Tee', sku: 'AP-TEE-01', category: 'Apparel', price: 2999, stock: 54, status: 'Active', src: '/images/store/nexus-compression-tee.png' },
+    { id: '6', name: 'Elite Wrist Wraps', sku: 'GR-WRAP-02', category: 'Gear', price: 1699, stock: 0, status: 'Out of Stock', src: '/images/store/elite-wrist-wraps.png' },
 ];
 
 const RECENT_ORDERS = [

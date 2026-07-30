@@ -9,7 +9,7 @@ const trainers = [
         name: 'Marcus Johnson',
         role: 'Head of Strength & Conditioning',
         bio: 'Former Olympic weightlifter with 12+ years of experience specialized in functional hypertrophy and raw power development.',
-        image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=800&auto=format&fit=crop',
         icon: Dumbbell,
         color: 'from-amber-500/20 to-orange-600/20',
         accent: 'text-gold-glow',
@@ -23,7 +23,7 @@ const trainers = [
         name: 'Sarah Chen',
         role: 'HIIT Specialist',
         bio: 'Sarah combines high-intensity interval training with functional movements. Her classes are known for their explosive energy and rapid calorie burn.',
-        image: 'https://images.unsplash.com/photo-1548690312-e3b507d8c110?q=80&w=800&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800&auto=format&fit=crop',
         icon: Activity,
         color: 'from-cyan-500/20 to-blue-600/20', // Retained from original, not explicitly removed
         accent: 'text-neon-cyan drop-shadow-[0_0_10px_hsl(var(--neon-cyan))]',

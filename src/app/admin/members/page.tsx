@@ -1,7 +1,9 @@
 "use client";
 
 import { Search, MoreVertical, Plus, Filter, UserCheck, Shield, AtSign, Phone, Activity } from "lucide-react";
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const membersData = [
     { id: "M-1024", name: "Alex Johnson", email: "alex.j@example.com", phone: "(555) 123-4567", plan: "Elite Annual", joinDate: "Oct 12, 2023", lastVisit: "Today, 09:45 AM", status: "Active" },
@@ -22,8 +24,21 @@ const getStatusColor = (status: string) => {
     }
 };
 
-export default function MembersPage() {
+function MembersPageContent() {
+    const searchParams = useSearchParams();
+    const initialStatus = searchParams.get("status") || "All";
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState(initialStatus);
+
+    const filteredMembers = membersData.filter((member) => {
+        const matchesSearch =
+            member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            member.phone.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus =
+            selectedStatus === "All" || member.status.toLowerCase() === selectedStatus.toLowerCase();
+        return matchesSearch && matchesStatus;
+    });
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -38,10 +53,10 @@ export default function MembersPage() {
                         <Filter className="w-4 h-4 text-primary dark:text-gold-glow" />
                         Filters
                     </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-primary text-primary-foreground font-semibold text-sm shadow-glow hover:shadow-glow/80 transition-all hover:-translate-y-0.5">
+                    <Link href="/receptionist/members/new" className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-primary text-primary-foreground font-semibold text-sm shadow-glow hover:shadow-glow/80 transition-all hover:-translate-y-0.5">
                         <Plus className="w-4 h-4" />
                         Add Member
-                    </button>
+                    </Link>
                 </div>
             </div>
 
@@ -68,9 +83,25 @@ export default function MembersPage() {
             {/* Main Content Area */}
             <div className="glass-card rounded-3xl border border-primary/10 overflow-hidden shadow-soft flex flex-col min-h-[500px]">
                 {/* Table Header / Filters */}
-                <div className="p-6 border-b border-primary/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-charcoal/30 dark:bg-black/20">
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
-                        <div className="relative w-full sm:w-80">
+                <div className="p-6 border-b border-primary/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-charcoal/30 dark:bg-black/20">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {["All", "Active", "Pending", "Inactive", "Frozen"].map((status) => (
+                            <button
+                                key={status}
+                                onClick={() => setSelectedStatus(status)}
+                                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                                    selectedStatus.toLowerCase() === status.toLowerCase()
+                                        ? "bg-primary dark:bg-gold-glow text-black font-bold shadow-glow"
+                                        : "bg-background/50 text-muted-foreground hover:bg-background hover:text-foreground border border-primary/10"
+                                }`}
+                            >
+                                {status}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <div className="relative w-full md:w-80">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
                                 type="text"
@@ -97,7 +128,7 @@ export default function MembersPage() {
                             </tr>
                         </thead>
                         <tbody className="text-sm divide-y divide-primary/5">
-                            {membersData.map((member) => (
+                            {filteredMembers.map((member) => (
                                 <tr key={member.id} className="group hover:bg-primary/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
@@ -157,5 +188,13 @@ export default function MembersPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function MembersPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading members...</div>}>
+            <MembersPageContent />
+        </Suspense>
     );
 }

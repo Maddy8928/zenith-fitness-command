@@ -43,7 +43,7 @@ export default function MembersPanel() {
         return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Members...</div>;
     }
 
-    const members = [
+    const defaultMembers = [
         {
             id: 1,
             name: 'Alex Thompson',
@@ -115,6 +115,29 @@ export default function MembersPanel() {
             avatar: 'RC'
         }
     ];
+
+    const [members, setMembers] = useState(defaultMembers);
+
+    useEffect(() => {
+        const loadMembers = () => {
+            try {
+                const saved = localStorage.getItem('zenith_trainer_members');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    const merged = [
+                        ...parsed,
+                        ...defaultMembers.filter(dm => !parsed.some((p: any) => p.email === dm.email))
+                    ];
+                    setMembers(merged);
+                } else {
+                    setMembers(defaultMembers);
+                }
+            } catch (e) {}
+        };
+        loadMembers();
+        window.addEventListener('storage', loadMembers);
+        return () => window.removeEventListener('storage', loadMembers);
+    }, []);
 
     const clientProgress = [
         { id: 1, name: 'Alex Thompson', goal: 'Weight Loss', progress: 75, lastActive: '2 hours ago', avatar: 'AT' },

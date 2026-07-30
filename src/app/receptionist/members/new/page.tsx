@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, User, CreditCard, Dumbbell, ShieldCheck, Mail, Phone, Calendar, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import NewMemberPaymentStep, { PaymentConfiguration } from '@/components/receptionist/NewMemberPaymentStep';
+import { addTransaction } from '@/lib/transactions-store';
 
 type Step = 1 | 2 | 3;
 
@@ -22,17 +25,59 @@ export default function NewMemberRegistration() {
         plan: 'premium',
         paymentMethod: 'credit'
     });
+    const [paymentConfig, setPaymentConfig] = useState<PaymentConfiguration | null>(null);
 
     const handleNext = () => setStep((s) => Math.min(s + 1, 3) as Step);
     const handleBack = () => setStep((s) => Math.max(s - 1, 1) as Step);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (step === 3 && !paymentConfig?.isValid) {
+            toast.error(paymentConfig?.validationError || "Please complete all required payment fields.");
+            return;
+        }
         setIsSubmitting(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        if (paymentConfig) {
+            addTransaction({
+                name: `${formData.firstName} ${formData.lastName}`,
+                amount: paymentConfig.paymentMethod === 'installment' ? (paymentConfig.installment1Amount || 0) : paymentConfig.finalPayableAmount,
+                desc: `${formData.plan.toUpperCase()} Plan (${paymentConfig.paymentMethodLabel})`,
+                status: paymentConfig.paymentStatus === 'Paid' ? 'Completed' : 'Partially Paid',
+                method: paymentConfig.paymentMethod === 'upi' ? 'UPI' : paymentConfig.paymentMethod === 'installment' ? 'Installment Payment' : 'Credit/Debit Card',
+                source: 'Memberships',
+                receptionist: 'Sarah Jenkins',
+                originalPrice: paymentConfig.originalPrice,
+                discountPercentage: paymentConfig.discountPercentage,
+                discountAmount: paymentConfig.discountAmount,
+                finalPayableAmount: paymentConfig.finalPayableAmount,
+                promoOffer: paymentConfig.promoOffer,
+                upiTransactionId: paymentConfig.upiTransactionId,
+                installmentDetails: paymentConfig.installment1Amount ? {
+                    installment1Amount: paymentConfig.installment1Amount,
+                    installment1Date: paymentConfig.installment1Date || new Date().toISOString().split('T')[0],
+                    installment2Amount: paymentConfig.installment2Amount || 0,
+                    dueDate: paymentConfig.installment2DueDate || '',
+                    remainingBalance: paymentConfig.remainingBalance || 0,
+                    completed: false
+                } : undefined,
+                outstandingBalance: paymentConfig.outstandingBalance,
+                paymentStatus: paymentConfig.paymentStatus,
+                paymentHistory: [
+                    {
+                        amount: paymentConfig.paymentMethod === 'installment' ? (paymentConfig.installment1Amount || 0) : paymentConfig.finalPayableAmount,
+                        date: new Date().toISOString(),
+                        method: paymentConfig.paymentMethodLabel,
+                        note: `Initial Registration Payment${paymentConfig.upiTransactionId ? ` (UTR: ${paymentConfig.upiTransactionId})` : ''}`
+                    }
+                ]
+            });
+        }
+
         setIsSubmitting(false);
         setIsSuccess(true);
+        toast.success(`Registration completed! Final Payable: ₹${(paymentConfig?.finalPayableAmount || 0).toLocaleString()} (${paymentConfig?.paymentStatus || 'Paid'})`);
     };
 
     const fadeInUp = {
@@ -56,9 +101,30 @@ export default function NewMemberRegistration() {
                     </div>
 
                     <h2 className="text-3xl font-heading font-bold text-foreground mb-4">Registration Successful!</h2>
-                    <p className="text-muted-foreground mb-8">
+                    <p className="text-muted-foreground mb-6">
                         {formData.firstName} {formData.lastName} has been successfully registered to the {formData.plan.toUpperCase()} plan. Their smart access key has been activated.
                     </p>
+
+                    <div className="bg-black/40 border border-white/10 rounded-2xl p-4 mb-8 text-left space-y-2 text-xs">
+                        <div className="flex justify-between">
+                            <span className="text-slate-400">Payment Method:</span>
+                            <span className="font-bold text-white">{paymentConfig?.paymentMethodLabel || 'One-Time Payment'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-400">Final Payable Amount:</span>
+                            <span className="font-mono font-bold text-primary">₹{(paymentConfig?.finalPayableAmount || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-400">Payment Status:</span>
+                            <span className="font-bold text-emerald-400">{paymentConfig?.paymentStatus || 'Paid'}</span>
+                        </div>
+                        {paymentConfig?.outstandingBalance ? (
+                            <div className="flex justify-between border-t border-white/5 pt-2">
+                                <span className="text-slate-400">Outstanding Balance (Inst 2):</span>
+                                <span className="font-mono font-bold text-amber-400">₹{paymentConfig.outstandingBalance.toLocaleString()} (Due {paymentConfig.installment2DueDate})</span>
+                            </div>
+                        ) : null}
+                    </div>
 
                     <div className="flex gap-4 justify-center">
                         <button onClick={() => { setIsSuccess(false); setStep(1); setFormData({ ...formData, firstName: '', lastName: '', email: '', phone: '' }) }} className="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-foreground transition-all">
@@ -168,9 +234,9 @@ export default function NewMemberRegistration() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     {[
-                                        { id: 'basic', name: 'Basic', price: '₹4,199', desc: 'Gym floor access only' },
-                                        { id: 'standard', name: 'Standard', price: '₹7,499', desc: 'Gym floor + Open Classes' },
-                                        { id: 'premium', name: 'Premium (Nexus)', price: '₹12,499', desc: 'All access + 2 PT sessions/mo' }
+                                        { id: 'basic', name: 'Basic', price: '₹4,500', desc: 'Gym floor access only' },
+                                        { id: 'standard', name: 'Standard', price: '₹7,500', desc: 'Gym floor + Open Classes' },
+                                        { id: 'premium', name: 'Premium (Nexus)', price: '₹12,500', desc: 'All access + 2 PT sessions/mo' }
                                     ].map((plan) => (
                                         <div
                                             key={plan.id}
@@ -197,39 +263,19 @@ export default function NewMemberRegistration() {
                         {/* STEP 3: Payment */}
                         {step === 3 && (
                             <motion.div key="step3" variants={fadeInUp} initial="hidden" animate="visible" exit="exit" className="space-y-6">
-                                <h2 className="text-2xl font-heading font-semibold text-foreground mb-6">Payment Configuration</h2>
-
-                                <div className="glass-card rounded-2xl p-6 bg-charcoal/30 mb-8 border-primary/20">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="text-muted-foreground">Selected Plan</span>
-                                        <span className="font-bold text-foreground capitalize">{formData.plan}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-t border-white/10 pt-4">
-                                        <span className="text-muted-foreground">Due Today</span>
-                                        <span className="text-2xl font-bold text-primary">
-                                            {formData.plan === 'premium' ? '₹12,499' : formData.plan === 'standard' ? '₹7,499' : '₹4,199'}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <p className="text-sm font-medium text-slate-300">Payment Method Setup</p>
-                                    <div className="flex gap-4">
-                                        <button type="button" onClick={() => setFormData({ ...formData, paymentMethod: 'credit' })} className={`flex-1 py-4 px-6 rounded-xl border flex items-center justify-center gap-2 transition-all ${formData.paymentMethod === 'credit' ? 'bg-primary/10 border-primary text-primary' : 'bg-black/20 border-white/10 text-muted-foreground hover:border-primary/30'}`}>
-                                            <CreditCard className="w-5 h-5" />
-                                            Credit/Debit Card
-                                        </button>
-                                        <button type="button" onClick={() => setFormData({ ...formData, paymentMethod: 'bank' })} className={`flex-1 py-4 px-6 rounded-xl border flex items-center justify-center gap-2 transition-all ${formData.paymentMethod === 'bank' ? 'bg-primary/10 border-primary text-primary' : 'bg-black/20 border-white/10 text-muted-foreground hover:border-primary/30'}`}>
-                                            <ShieldCheck className="w-5 h-5" />
-                                            Bank ACH
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm flex items-start gap-3 mt-6">
-                                    <ShieldCheck className="w-5 h-5 mt-0.5" />
-                                    <p>Payment information will be securely collected via the terminal in the next step. Do not input full card numbers manually.</p>
-                                </div>
+                                <h2 className="text-2xl font-heading font-semibold text-foreground mb-4">Payment Configuration</h2>
+                                <NewMemberPaymentStep
+                                    memberName={`${formData.firstName} ${formData.lastName}`}
+                                    memberEmail={formData.email}
+                                    memberPhone={formData.phone}
+                                    selectedPlan={{
+                                        id: formData.plan,
+                                        name: formData.plan,
+                                        price: formData.plan === 'premium' ? 12500 : formData.plan === 'standard' ? 7500 : 4500
+                                    }}
+                                    onPaymentConfigChange={setPaymentConfig}
+                                    isModal={false}
+                                />
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -244,8 +290,8 @@ export default function NewMemberRegistration() {
 
                         <button
                             type="submit"
-                            disabled={isSubmitting}
-                            className="px-8 py-2.5 rounded-xl bg-primary text-black font-bold uppercase tracking-wide gold-glow hover:bg-primary/90 transition-all flex items-center gap-2"
+                            disabled={isSubmitting || (step === 3 && !paymentConfig?.isValid)}
+                            className="px-8 py-2.5 rounded-xl bg-primary text-black font-bold uppercase tracking-wide gold-glow hover:bg-primary/90 transition-all flex items-center gap-2 disabled:opacity-70"
                         >
                             {isSubmitting ? (
                                 <><Loader2 className="w-4 h-4 animate-spin" /> Processing</>
