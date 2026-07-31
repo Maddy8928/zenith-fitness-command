@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, CalendarDays, ShoppingCart, Zap, CreditCard, ClipboardSignature, Settings, Waves } from 'lucide-react';
+import { LayoutDashboard, Users, UserCheck, CalendarDays, ShoppingCart, Zap, CreditCard, ClipboardSignature, Settings, Waves } from 'lucide-react';
 
 const navItems = [
     { label: 'Dashboard', href: '/receptionist', icon: LayoutDashboard },
     { label: 'Members', href: '/receptionist/members', icon: Users },
+    { label: 'Attendance', href: '/receptionist/attendance', icon: UserCheck },
     { label: 'Classes', href: '/receptionist/classes', icon: CalendarDays },
     { label: 'Store (POS)', href: '/receptionist/store', icon: ShoppingCart },
     { label: 'Payments', href: '/receptionist/payments', icon: CreditCard },

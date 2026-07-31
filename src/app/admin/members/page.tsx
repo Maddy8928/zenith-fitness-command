@@ -1,11 +1,12 @@
 "use client";
 
 import { 
-    Search, MoreVertical, Plus, Filter, UserCheck, Shield, AtSign, 
+    Search, MoreVertical, UserCheck, Shield, AtSign, 
     Phone, Activity, CalendarDays, TrendingUp, Dumbbell, Clock, Users,
-    CheckCircle2, AlertCircle
+    CheckCircle2, AlertCircle, Eye
 } from "lucide-react";
 import { useState } from "react";
+import MemberProfileDrawer, { AdminMember } from "@/components/admin/MemberProfileDrawer";
 
 const membersData = [
     { id: "M-1024", name: "Alex Johnson", email: "alex.j@example.com", phone: "(555) 123-4567", plan: "Elite Annual", joinDate: "Oct 12, 2023", lastVisit: "Today, 09:45 AM", status: "Active", trainer: "Alex Johnson" },
@@ -39,6 +40,13 @@ const getStatusColor = (status: string) => {
 export default function MembersPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState("All Members");
+    const [selectedMember, setSelectedMember] = useState<AdminMember | null>(null);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+    const handleOpenProfile = (member: AdminMember) => {
+        setSelectedMember(member);
+        setIsProfileOpen(true);
+    };
 
     const filteredMembers = membersData.filter((member) => {
         const matchesSearch = 
@@ -68,16 +76,6 @@ export default function MembersPage() {
                     <p className="text-sm text-muted-foreground mt-1">
                         Centralized control for members, memberships, attendance, progress, and personal training.
                     </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary/20 bg-charcoal/50 dark:bg-white/5 hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors text-sm font-medium">
-                        <Filter className="w-4 h-4 text-primary dark:text-gold-glow" />
-                        Filters
-                    </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-primary text-primary-foreground font-semibold text-sm shadow-glow hover:shadow-glow/80 transition-all hover:-translate-y-0.5">
-                        <Plus className="w-4 h-4" />
-                        Add Member
-                    </button>
                 </div>
             </div>
 
@@ -155,7 +153,7 @@ export default function MembersPage() {
                                     <th className="px-6 py-4">Membership</th>
                                     <th className="px-6 py-4">Last Visit</th>
                                     <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="text-sm divide-y divide-primary/5">
@@ -192,11 +190,14 @@ export default function MembersPage() {
                                                 {member.status}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                                            <button className="text-sm font-medium text-primary dark:text-gold-glow hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10">
-                                                Edit
+                                        <td className="px-6 py-4 whitespace-nowrap text-left">
+                                            <button 
+                                                onClick={() => handleOpenProfile(member)}
+                                                className="text-sm font-bold text-primary dark:text-gold-glow hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10 mr-1"
+                                            >
+                                                Profile
                                             </button>
-                                            <button className="ml-2 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-white/5">
+                                            <button className="ml-1 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-white/5">
                                                 <MoreVertical className="w-4 h-4 inline" />
                                             </button>
                                         </td>
@@ -313,6 +314,13 @@ export default function MembersPage() {
                     </div>
                 </div>
             )}
+
+            {/* Interactive Admin Member Profile Drawer */}
+            <MemberProfileDrawer
+                member={selectedMember}
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+            />
         </div>
     );
 }

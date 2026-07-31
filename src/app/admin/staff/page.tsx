@@ -1,10 +1,11 @@
 "use client";
 
 import { 
-    Search, Plus, Filter, MoreVertical, Star, Users, Award, 
-    Mail, Phone, UserCheck, Shield, Clock, Briefcase, CalendarDays, CheckCircle2 
+    Search, MoreVertical, Star, Users, Award, 
+    Mail, Phone, UserCheck, Shield, Clock, Briefcase, CalendarDays, CheckCircle2, Eye, X, Edit3, Save, AlertCircle 
 } from "lucide-react";
 import { useState } from "react";
+import TrainerProfileDrawer from "@/components/admin/TrainerProfileDrawer";
 
 const trainersData = [
     { id: "T-01", name: "Alex Johnson", role: "Head Trainer", specialization: "HIIT & Functional", rating: 4.9, activeClients: 24, totalSessions: 1250, email: "alex.j@flexgym.com", phone: "(555) 111-2222", status: "Active", attendance: "Present" },
@@ -39,15 +40,47 @@ const getStatusColor = (status: string) => {
 };
 
 export default function StaffPage() {
+    const [trainersList, setTrainersList] = useState(trainersData);
+    const [receptionistsList, setReceptionistsList] = useState(receptionistsData);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState<"Trainers" | "Receptionists">("Trainers");
+    const [selectedTrainerId, setSelectedTrainerId] = useState<string | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [editingStaff, setEditingStaff] = useState<any | null>(null);
+    const [staffType, setStaffType] = useState<"Trainer" | "Receptionist">("Trainer");
+    const [editForm, setEditForm] = useState<any>({});
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-    const filteredTrainers = trainersData.filter(t =>
+    const handleOpenProfile = (trainerId: string) => {
+        setSelectedTrainerId(trainerId);
+        setIsDrawerOpen(true);
+    };
+
+    const handleOpenEdit = (staff: any, type: "Trainer" | "Receptionist") => {
+        setEditingStaff(staff);
+        setStaffType(type);
+        setEditForm({ ...staff });
+    };
+
+    const handleSaveEdit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingStaff) return;
+        if (staffType === "Trainer") {
+            setTrainersList(prev => prev.map(item => item.id === editingStaff.id ? { ...item, ...editForm } : item));
+        } else {
+            setReceptionistsList(prev => prev.map(item => item.id === editingStaff.id ? { ...item, ...editForm } : item));
+        }
+        setToastMessage(`Successfully updated staff member: ${editForm.name}`);
+        setTimeout(() => setToastMessage(null), 4000);
+        setEditingStaff(null);
+    };
+
+    const filteredTrainers = trainersList.filter(t =>
         t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.specialization.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const filteredReceptionists = receptionistsData.filter(r =>
+    const filteredReceptionists = receptionistsList.filter(r =>
         r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.shift.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -63,16 +96,6 @@ export default function StaffPage() {
                     <p className="text-sm text-muted-foreground mt-1">
                         Consolidated executive oversight for Trainers and Receptionists.
                     </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary/20 bg-charcoal/50 dark:bg-white/5 hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors text-sm font-medium">
-                        <Filter className="w-4 h-4 text-primary dark:text-gold-glow" />
-                        Filters
-                    </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent dark:from-gold-glow dark:to-primary text-primary-foreground font-semibold text-sm shadow-glow hover:shadow-glow/80 transition-all hover:-translate-y-0.5">
-                        <Plus className="w-4 h-4" />
-                        Add {activeTab === "Trainers" ? "Trainer" : "Receptionist"}
-                    </button>
                 </div>
             </div>
 
@@ -153,16 +176,18 @@ export default function StaffPage() {
                 {/* Trainers View */}
                 {activeTab === "Trainers" ? (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse min-w-[800px]">
+                        <table className="w-full text-left border-collapse min-w-[1050px]">
                             <thead>
                                 <tr className="border-b border-primary/10 text-xs uppercase tracking-wider font-semibold text-muted-foreground bg-black/5 dark:bg-white/5">
                                     <th className="px-6 py-4">Trainer Profile</th>
+                                    <th className="px-6 py-4">Contact</th>
                                     <th className="px-6 py-4">Specialization</th>
                                     <th className="px-6 py-4">Assigned Members</th>
                                     <th className="px-6 py-4">Sessions</th>
                                     <th className="px-6 py-4">Attendance</th>
+                                    <th className="px-6 py-4">Rating</th>
                                     <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="text-sm divide-y divide-primary/5">
@@ -179,6 +204,12 @@ export default function StaffPage() {
                                                 </div>
                                             </div>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col text-xs">
+                                                <span className="text-foreground dark:text-white font-medium flex items-center gap-1.5"><Mail className="w-3 h-3 text-primary" /> {trainer.email}</span>
+                                                <span className="text-muted-foreground flex items-center gap-1.5 mt-0.5"><Phone className="w-3 h-3 text-primary" /> {trainer.phone}</span>
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap font-medium text-foreground">
                                             {trainer.specialization}
                                         </td>
@@ -192,14 +223,23 @@ export default function StaffPage() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-xs font-semibold text-emerald-400">{trainer.attendance}</span>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap font-bold text-amber-400">
+                                            {trainer.rating} ★
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-semibold ${getStatusColor(trainer.status)}`}>
                                                 {trainer.status}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                                            <button className="text-sm font-medium text-primary dark:text-gold-glow hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10">
+                                        <td className="px-6 py-4 whitespace-nowrap text-left">
+                                            <button 
+                                                onClick={() => handleOpenProfile(trainer.id)}
+                                                className="text-sm font-bold text-primary dark:text-gold-glow hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10 mr-1"
+                                            >
                                                 Profile
+                                            </button>
+                                            <button className="ml-1 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-white/5">
+                                                <MoreVertical className="w-4 h-4 inline" />
                                             </button>
                                         </td>
                                     </tr>
@@ -209,16 +249,17 @@ export default function StaffPage() {
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse min-w-[800px]">
+                        <table className="w-full text-left border-collapse min-w-[1050px]">
                             <thead>
                                 <tr className="border-b border-primary/10 text-xs uppercase tracking-wider font-semibold text-muted-foreground bg-black/5 dark:bg-white/5">
                                     <th className="px-6 py-4">Receptionist Profile</th>
+                                    <th className="px-6 py-4">Contact</th>
                                     <th className="px-6 py-4">Assigned Shift</th>
                                     <th className="px-6 py-4">Desk Location</th>
                                     <th className="px-6 py-4">Attendance</th>
                                     <th className="px-6 py-4">Performance</th>
                                     <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="text-sm divide-y divide-primary/5">
@@ -233,6 +274,12 @@ export default function StaffPage() {
                                                     <span className="font-semibold text-foreground dark:text-white text-base">{staff.name}</span>
                                                     <span className="text-xs text-muted-foreground">{staff.role}</span>
                                                 </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col text-xs">
+                                                <span className="text-foreground dark:text-white font-medium flex items-center gap-1.5"><Mail className="w-3 h-3 text-primary" /> {staff.email}</span>
+                                                <span className="text-muted-foreground flex items-center gap-1.5 mt-0.5"><Phone className="w-3 h-3 text-primary" /> {staff.phone}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap font-medium text-foreground">
@@ -252,9 +299,15 @@ export default function StaffPage() {
                                                 {staff.status}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                                            <button className="text-sm font-medium text-primary dark:text-gold-glow hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10">
+                                        <td className="px-6 py-4 whitespace-nowrap text-left">
+                                            <button 
+                                                onClick={() => handleOpenProfile(staff.id)}
+                                                className="text-sm font-bold text-primary dark:text-gold-glow hover:text-primary/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10 mr-1"
+                                            >
                                                 Profile
+                                            </button>
+                                            <button className="ml-1 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-white/5">
+                                                <MoreVertical className="w-4 h-4 inline" />
                                             </button>
                                         </td>
                                     </tr>
@@ -264,6 +317,179 @@ export default function StaffPage() {
                     </div>
                 )}
             </div>
+
+            {/* Interactive Admin Trainer Profile Drawer */}
+            <TrainerProfileDrawer
+                trainerId={selectedTrainerId}
+                isOpen={isDrawerOpen}
+                onClose={() => setIsDrawerOpen(false)}
+            />
+
+            {/* Success Toast Notification */}
+            {toastMessage && (
+                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <CheckCircle2 className="w-5 h-5 shrink-0" />
+                    <span className="text-sm font-semibold">{toastMessage}</span>
+                    <button onClick={() => setToastMessage(null)} className="ml-2 hover:text-white">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
+            {/* Interactive Edit Staff Modal */}
+            {editingStaff && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="w-full max-w-lg bg-[#0f1218] border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+                        {/* Modal Header */}
+                        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white font-bold text-sm">
+                                    {editingStaff.name.charAt(0)}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-heading font-bold text-white">
+                                        Edit {staffType} Profile
+                                    </h3>
+                                    <p className="text-xs text-slate-400 font-mono">
+                                        ID: {editingStaff.id}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setEditingStaff(null)}
+                                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Modal Form */}
+                        <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                                    Full Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.name || ""}
+                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                    required
+                                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                                        Role / Title
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editForm.role || ""}
+                                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                                        required
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                                        {staffType === "Trainer" ? "Specialization" : "Assigned Shift"}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={staffType === "Trainer" ? (editForm.specialization || "") : (editForm.shift || "")}
+                                        onChange={(e) => staffType === "Trainer" 
+                                            ? setEditForm({ ...editForm, specialization: e.target.value })
+                                            : setEditForm({ ...editForm, shift: e.target.value })
+                                        }
+                                        required
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={editForm.email || ""}
+                                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                        required
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                                        Phone Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editForm.phone || ""}
+                                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                        required
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                                        Status
+                                    </label>
+                                    <select
+                                        value={editForm.status || "Active"}
+                                        onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                                    >
+                                        <option value="Active" className="bg-[#0f1218] text-white">Active</option>
+                                        <option value="On Duty" className="bg-[#0f1218] text-white">On Duty</option>
+                                        <option value="On Leave" className="bg-[#0f1218] text-white">On Leave</option>
+                                        <option value="Scheduled" className="bg-[#0f1218] text-white">Scheduled</option>
+                                        <option value="Inactive" className="bg-[#0f1218] text-white">Inactive</option>
+                                        <option value="Off Duty" className="bg-[#0f1218] text-white">Off Duty</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                                        Rating (1.0 - 5.0)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="1"
+                                        max="5"
+                                        value={editForm.rating || 5.0}
+                                        onChange={(e) => setEditForm({ ...editForm, rating: parseFloat(e.target.value) || 5.0 })}
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingStaff(null)}
+                                    className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-semibold shadow-md transition-colors"
+                                >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

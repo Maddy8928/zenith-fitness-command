@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
     ResponsiveContainer, Legend
@@ -91,7 +91,7 @@ const getExecutiveRevenueData = (range: ExecutiveRevenueRange): ExecutiveRevenue
 };
 
 export default function RevenueOverview() {
-    const [range, setRange] = useState<ExecutiveRevenueRange>('Today');
+    const range: ExecutiveRevenueRange = 'Today';
     const revenue = useMemo(() => getExecutiveRevenueData(range), [range]);
     const isPositive = revenue.growth >= 0;
     const netDifference = revenue.total - revenue.previousPeriodTotal;
@@ -101,37 +101,18 @@ export default function RevenueOverview() {
             {/* Decorative Luxury Radial Glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-[radial-gradient(circle,_hsl(45_95%_55%/0.08),_transparent_70%)] rounded-full blur-[90px] -mr-36 -mt-36 transition-transform duration-1000 group-hover:scale-110 pointer-events-none" />
 
-            {/* Header and Filter Tabs */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 relative z-10">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary dark:text-gold-glow">
-                        <BarChart3 className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-heading font-bold text-foreground dark:text-white tracking-tight">
-                            Revenue Overview
-                        </h2>
-                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
-                            Executive Financial Analytics
-                        </p>
-                    </div>
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6 relative z-10">
+                <div className="p-2.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary dark:text-gold-glow">
+                    <BarChart3 className="w-5 h-5" />
                 </div>
-
-                {/* Range Filter Buttons: Today | This Week | This Month */}
-                <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-md p-1 rounded-2xl border border-primary/10">
-                    {(['Today', 'This Week', 'This Month'] as const).map((r) => (
-                        <button
-                            key={r}
-                            onClick={() => setRange(r)}
-                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                range === r
-                                    ? 'bg-primary text-primary-foreground shadow-glow'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-primary/5'
-                            }`}
-                        >
-                            {r}
-                        </button>
-                    ))}
+                <div>
+                    <h2 className="text-lg font-heading font-bold text-foreground dark:text-white tracking-tight">
+                        Revenue Overview
+                    </h2>
+                    <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
+                        Executive Financial Analytics
+                    </p>
                 </div>
             </div>
 

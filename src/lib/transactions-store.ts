@@ -4,11 +4,36 @@ export interface Transaction {
     amount: number;
     desc: string; // Description / Purpose
     date: string; // Formatted display date (e.g., "Today, 10:45 AM")
-    status: 'Completed' | 'Pending' | 'Failed';
-    method: 'Cash' | 'UPI' | 'Credit/Debit Card' | 'Bank Transfer' | 'Other';
+    status: 'Completed' | 'Pending' | 'Failed' | 'Partially Paid' | 'Paid' | 'Refunded' | 'Installment';
+    method: 'Cash' | 'UPI' | 'Credit/Debit Card' | 'Bank Transfer' | 'Installment' | 'Other' | string;
     source: 'Memberships' | 'Personal Training' | 'Classes' | 'HYROX' | 'Product Sales';
     receptionist: string; // Who collected it
     rawDate: string; // ISO date string
+    // Extended ERP Finance fields
+    originalPrice?: number;
+    discountPercent?: number;
+    discountAmount?: number;
+    finalPayable?: number;
+    amountPaid?: number;
+    upiTransactionId?: string;
+    paymentMethodType?: 'One-Time Payment' | 'UPI Payment' | 'Installment Payment';
+    installmentDetails?: {
+        installment1Amount: number;
+        installment1Date: string;
+        installment2Amount: number;
+        installment2DueDate: string;
+        scheduleCompleted: boolean;
+    };
+    outstandingBalance?: number;
+    paymentStatus?: 'Paid' | 'Partially Paid' | 'Pending' | 'Refunded';
+    membershipStatus?: 'Active' | 'Pending' | 'Inactive';
+    paymentHistory?: Array<{
+        id: string;
+        date: string;
+        amount: number;
+        method: string;
+        note: string;
+    }>;
 }
 
 export const getInitialTransactions = (): Transaction[] => {
@@ -24,6 +49,42 @@ export const getInitialTransactions = (): Transaction[] => {
     };
 
     const initial = [
+        {
+            id: 'TRX-10143',
+            name: 'Vikram Mehta',
+            amount: 11250,
+            desc: 'Premium Plan (Installment 1 of 2)',
+            rawDate: relativeDate(0, 0, 20), // 20m ago
+            status: 'Partially Paid',
+            method: 'Installment',
+            source: 'Memberships',
+            receptionist: 'Sarah Jenkins',
+            originalPrice: 12500,
+            discountPercent: 10,
+            discountAmount: 1250,
+            finalPayable: 11250,
+            amountPaid: 5000,
+            paymentMethodType: 'Installment Payment',
+            installmentDetails: {
+                installment1Amount: 5000,
+                installment1Date: new Date().toISOString().split('T')[0],
+                installment2Amount: 6250,
+                installment2DueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+                scheduleCompleted: false
+            },
+            outstandingBalance: 6250,
+            paymentStatus: 'Partially Paid',
+            membershipStatus: 'Active',
+            paymentHistory: [
+                {
+                    id: 'PAY-INST-1',
+                    date: new Date().toLocaleDateString('en-IN'),
+                    amount: 5000,
+                    method: 'UPI',
+                    note: '1st Installment received'
+                }
+            ]
+        },
         {
             id: 'TRX-10142',
             name: 'Michael Chen',
@@ -281,4 +342,46 @@ export const addTransaction = (
     const updated = [newTx, ...transactions];
     saveStoredTransactions(updated);
     return newTx;
+};
+
+export const isDuplicateUpiId = (upiId: string): boolean => {
+    if (!upiId || !upiId.trim()) return false;
+    const cleanId = upiId.trim().toLowerCase();
+    const transactions = getStoredTransactions();
+    return transactions.some(t => t.upiTransactionId && t.upiTransactionId.trim().toLowerCase() === cleanId);
+};
+
+export const completeInstallmentPayment = (txId: string): Transaction | null => {
+    const transactions = getStoredTransactions();
+    const index = transactions.findIndex(t => t.id === txId);
+    if (index === -1) return null;
+
+    const tx = transactions[index];
+    const remaining = tx.outstandingBalance || (tx.installmentDetails ? tx.installmentDetails.installment2Amount : 0);
+
+    const updatedTx: Transaction = {
+        ...tx,
+        status: 'Completed',
+        paymentStatus: 'Paid',
+        outstandingBalance: 0,
+        amountPaid: (tx.amountPaid || 0) + remaining,
+        installmentDetails: tx.installmentDetails ? {
+            ...tx.installmentDetails,
+            scheduleCompleted: true
+        } : undefined,
+        paymentHistory: [
+            ...(tx.paymentHistory || []),
+            {
+                id: `PAY-INST-${(tx.paymentHistory?.length || 0) + 1}`,
+                date: new Date().toLocaleDateString('en-IN'),
+                amount: remaining,
+                method: 'Installment Settlement',
+                note: '2nd Installment collected - schedule completed'
+            }
+        ]
+    };
+
+    transactions[index] = updatedTx;
+    saveStoredTransactions(transactions);
+    return updatedTx;
 };

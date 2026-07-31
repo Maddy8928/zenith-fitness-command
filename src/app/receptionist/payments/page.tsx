@@ -99,7 +99,14 @@ export default function PaymentsPanel() {
             const matchesSearch = trx.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 trx.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 trx.desc.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesStatus = filterStatus === 'All' || trx.status === filterStatus;
+            const matchesStatus = filterStatus === 'All' ||
+                (filterStatus === 'Installment'
+                    ? (trx.paymentMethodType === 'Installment Payment' ||
+                       trx.status === 'Partially Paid' ||
+                       trx.status === 'Installment' ||
+                       trx.status === 'Pending' ||
+                       !!trx.installmentDetails)
+                    : trx.status === filterStatus);
 
             // Filter by Date
             const matchesDate = matchesDateRange(trx.rawDate, dateRange, customStartDate, customEndDate);
@@ -110,19 +117,33 @@ export default function PaymentsPanel() {
 
     const getStatusStyle = (status: string) => {
         switch (status) {
-            case 'Completed': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-            case 'Pending': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-            case 'Failed': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-            default: return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+            case 'Completed':
+            case 'Paid':
+                return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+            case 'Installment':
+            case 'Partially Paid':
+            case 'Pending':
+                return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+            case 'Failed':
+                return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+            default:
+                return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
         }
     };
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'Completed': return <CheckCircle2 className="w-3.5 h-3.5" />;
-            case 'Pending': return <TrendingUp className="w-3.5 h-3.5" />;
-            case 'Failed': return <AlertCircle className="w-3.5 h-3.5" />;
-            default: return null;
+            case 'Completed':
+            case 'Paid':
+                return <CheckCircle2 className="w-3.5 h-3.5" />;
+            case 'Installment':
+            case 'Partially Paid':
+            case 'Pending':
+                return <TrendingUp className="w-3.5 h-3.5" />;
+            case 'Failed':
+                return <AlertCircle className="w-3.5 h-3.5" />;
+            default:
+                return null;
         }
     };
 
@@ -430,7 +451,7 @@ export default function PaymentsPanel() {
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     {/* Status Pills - scrollable */}
                     <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 flex-1 md:flex-none">
-                        {['All', 'Completed', 'Pending', 'Failed'].map(status => (
+                        {['All', 'Completed', 'Installment', 'Failed'].map(status => (
                             <button
                                 key={status}
                                 onClick={() => setFilterStatus(status)}
@@ -580,7 +601,7 @@ export default function PaymentsPanel() {
                                     <td className="p-4">
                                         <span className={`px-3 py-1.5 text-xs font-medium rounded-full border flex items-center gap-1.5 w-fit ${getStatusStyle(trx.status)}`}>
                                             {getStatusIcon(trx.status)}
-                                            {trx.status}
+                                            {(trx.paymentMethodType === 'Installment Payment' || trx.status === 'Partially Paid' || trx.status === 'Installment' || trx.status === 'Pending' || !!trx.installmentDetails) ? 'Installment' : trx.status}
                                         </span>
                                     </td>
                                     <td className="p-4">

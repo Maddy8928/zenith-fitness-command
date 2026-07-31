@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { CreditCard, Receipt, Clock, CheckCircle2, AlertCircle, ArrowUpRight, Zap, ShieldCheck, Download, Users, XCircle, Dumbbell, Lock, Star, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -637,6 +639,163 @@ export default function MemberBillingPage() {
         loadTransfers();
     };
 
+    const handleDownloadInvoice = (invoice: any) => {
+        const cgst = Number((invoice.amount * 0.09).toFixed(2));
+        const sgst = Number((invoice.amount * 0.09).toFixed(2));
+        const baseAmount = Number((invoice.amount / 1.18).toFixed(2));
+
+        const doc = new jsPDF();
+
+        // Dark Luxury Header Banner
+        doc.setFillColor(15, 23, 42); // slate-900
+        doc.rect(0, 0, 210, 45, 'F');
+
+        // Brand & Title
+        doc.setTextColor(234, 179, 8); // Gold / yellow-500
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ZENITH FITNESS STUDIO', 15, 20);
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('OFFICIAL MEMBERSHIP TAX INVOICE', 15, 30);
+        doc.text(`Invoice No: ${invoice.id}`, 15, 38);
+
+        doc.setTextColor(148, 163, 184); // slate-400
+        doc.text(`Date Issued: ${invoice.date}`, 145, 38);
+
+        // Billed To Section
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('BILLED TO:', 15, 60);
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Member Name: ${currentUser?.name || 'Alex Thompson'}`, 15, 68);
+        doc.text(`Member Email: ${currentUser?.email || 'alex.t@example.com'}`, 15, 75);
+        doc.text(`Payment Status: ${invoice.status ? invoice.status.toUpperCase() : 'PAID'}`, 15, 82);
+
+        // Item Table
+        autoTable(doc, {
+            startY: 92,
+            head: [['Description', 'Qty', 'Rate (INR)', 'Amount (INR)']],
+            body: [
+                [
+                    String(invoice.description || 'Gym Membership'),
+                    '1',
+                    `INR ${baseAmount.toLocaleString()}`,
+                    `INR ${baseAmount.toLocaleString()}`
+                ],
+                ['CGST (9.0%)', '-', '-', `INR ${cgst.toLocaleString()}`],
+                ['SGST (9.0%)', '-', '-', `INR ${sgst.toLocaleString()}`],
+            ],
+            theme: 'striped',
+            headStyles: {
+                fillColor: [15, 23, 42],
+                textColor: 255,
+                fontStyle: 'bold'
+            },
+            styles: {
+                fontSize: 10,
+                cellPadding: 5
+            }
+        });
+
+        const finalY = (doc as any).lastAutoTable?.finalY || 140;
+
+        // Total Box
+        doc.setFillColor(241, 245, 249);
+        doc.rect(15, finalY + 10, 180, 20, 'F');
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TOTAL PAID (INCL. GST):', 20, finalY + 23);
+        doc.setFontSize(14);
+        doc.setTextColor(217, 119, 6); // Amber-600
+        doc.text(`INR ${Number(invoice.amount).toLocaleString()}`, 145, finalY + 23);
+
+        // Footer Note
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Thank you for choosing Zenith Fitness Studio! Support: billing@zenithfitness.com', 15, finalY + 45);
+
+        doc.save(`${invoice.id}-Invoice.pdf`);
+        toast.success(`📄 PDF Invoice ${invoice.id} downloaded successfully!`);
+    };
+
+    const handleDownloadTaxSummary = () => {
+        const totalAmount = savedInvoices.reduce((sum, inv) => sum + (inv.status === 'Paid' ? inv.amount : 0), 0);
+        const cgst = Number((totalAmount * 0.09).toFixed(2));
+        const sgst = Number((totalAmount * 0.09).toFixed(2));
+
+        const doc = new jsPDF();
+
+        // Dark Banner
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 45, 'F');
+
+        doc.setTextColor(234, 179, 8);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ZENITH FITNESS STUDIO', 15, 20);
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('ANNUAL MEMBERSHIP TAX SUMMARY REPORT 2026', 15, 30);
+        doc.text(`Member: ${currentUser?.name || 'Alex Thompson'}`, 15, 38);
+
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE HISTORY & TAX SUMMARY', 15, 60);
+
+        autoTable(doc, {
+            startY: 68,
+            head: [['Invoice ID', 'Date Issued', 'Status', 'Amount (INR)']],
+            body: savedInvoices.map(inv => [
+                String(inv.id),
+                String(inv.date),
+                String(inv.status),
+                `INR ${Number(inv.amount).toLocaleString()}`
+            ]),
+            theme: 'striped',
+            headStyles: {
+                fillColor: [15, 23, 42],
+                textColor: 255,
+                fontStyle: 'bold'
+            },
+            styles: {
+                fontSize: 10,
+                cellPadding: 4
+            }
+        });
+
+        const finalY = (doc as any).lastAutoTable?.finalY || 130;
+
+        doc.setFillColor(241, 245, 249);
+        doc.rect(15, finalY + 10, 180, 28, 'F');
+
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TOTAL PAID AMOUNT:', 20, finalY + 19);
+        doc.text(`INR ${totalAmount.toLocaleString()}`, 145, finalY + 19);
+
+        doc.text('TOTAL CGST PAID (9%):', 20, finalY + 26);
+        doc.text(`INR ${cgst.toLocaleString()}`, 145, finalY + 26);
+
+        doc.text('TOTAL SGST PAID (9%):', 20, finalY + 33);
+        doc.text(`INR ${sgst.toLocaleString()}`, 145, finalY + 33);
+
+        doc.save(`Zenith-Tax-Summary-2026.pdf`);
+        toast.success("📄 PDF Tax Summary downloaded successfully!");
+    };
+
     const displayedInvoices = React.useMemo(() => {
         const list = [...savedInvoices];
         
@@ -696,7 +855,10 @@ export default function MemberBillingPage() {
                 </div>
 
                 <div className="relative z-10">
-                    <Button className="bg-slate-900/50 hover:bg-slate-800 text-white border border-slate-700 rounded-xl h-12 px-6 transition-all shadow-none">
+                    <Button 
+                        onClick={handleDownloadTaxSummary}
+                        className="bg-slate-900/50 hover:bg-slate-800 text-white border border-slate-700 rounded-xl h-12 px-6 transition-all shadow-none cursor-pointer active:scale-95"
+                    >
                         <Download className="w-4 h-4 mr-2" />
                         Download Tax Summary
                     </Button>
@@ -1277,7 +1439,13 @@ export default function MemberBillingPage() {
                                                     )}
                                                 </Button>
                                             ) : (
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30">
+                                                <Button 
+                                                    onClick={() => handleDownloadInvoice(invoice)}
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    title="Download Official Tax Invoice"
+                                                    className="h-8 w-8 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 transition-all active:scale-95 cursor-pointer"
+                                                >
                                                     <Download className="h-4 w-4" />
                                                     <span className="sr-only">Download invoice</span>
                                                 </Button>

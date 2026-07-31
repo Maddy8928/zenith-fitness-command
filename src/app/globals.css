@@ -119,6 +119,19 @@
     font-family: var(--font-body);
   }
 
+  /* Enforce pure black background and crisp white text on all select menus and dropdown options */
+  select {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+  }
+
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
