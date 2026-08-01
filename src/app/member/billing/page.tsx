@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { CreditCard, Receipt, Clock, CheckCircle2, AlertCircle, ArrowUpRight, Zap, ShieldCheck, Download, Users, XCircle, Dumbbell, Lock, Star, Loader2 } from 'lucide-react';
+import { CreditCard, Receipt, Clock, CheckCircle2, AlertCircle, ArrowUpRight, Zap, ShieldCheck, Download, Users, XCircle, Dumbbell, Lock, Star, Loader2, Snowflake } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { useMembershipFreeze } from '@/lib/membership-freeze-store';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,6 +68,7 @@ const INVOICES = [
 export default function MemberBillingPage() {
     const { user: currentUser } = useAuth();
     const { addNotification } = useNotifications();
+    const { activeFreeze, freezeHistory = [] } = useMembershipFreeze(1);
 
     const [subscription, setSubscription] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -881,15 +883,26 @@ export default function MemberBillingPage() {
                                 <CardDescription className="text-slate-400">Your current membership details and benefits.</CardDescription>
                             </div>
                             <Badge variant="outline" className={`${
-                                subscription.status === 'Active'
+                                activeFreeze
+                                    ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20 hover:bg-cyan-500/20'
+                                    : subscription.status === 'Active'
                                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
                                     : subscription.status === 'Transfer Pending'
                                     ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20'
                                     : 'bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20'
                             }`}>
-                                {subscription.status === 'Active' && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
-                                {subscription.status === 'Transfer Pending' && <Clock className="w-3.5 h-3.5 mr-1 animate-pulse" />}
-                                {subscription.status}
+                                {activeFreeze ? (
+                                    <>
+                                        <Snowflake className="w-3.5 h-3.5 mr-1" />
+                                        Frozen ({activeFreeze.totalDays} Days)
+                                    </>
+                                ) : (
+                                    <>
+                                        {subscription.status === 'Active' && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
+                                        {subscription.status === 'Transfer Pending' && <Clock className="w-3.5 h-3.5 mr-1 animate-pulse" />}
+                                        {subscription.status}
+                                    </>
+                                )}
                             </Badge>
                         </div>
                     </CardHeader>
@@ -936,6 +949,33 @@ export default function MemberBillingPage() {
                                             ))}
                                         </ul>
                                     </div>
+                                    {/* Active Freeze & History in Billing */}
+                                    {activeFreeze ? (
+                                        <div className="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-xs space-y-1 text-slate-200 mt-3">
+                                            <div className="flex items-center justify-between font-bold text-cyan-300">
+                                                <span className="flex items-center gap-1.5"><Snowflake className="w-3.5 h-3.5" /> Membership Currently Frozen</span>
+                                                <span>{activeFreeze.totalDays} Days Extended</span>
+                                            </div>
+                                            <div className="flex justify-between text-slate-400">
+                                                <span>Freeze Period:</span>
+                                                <span className="text-white font-semibold">{activeFreeze.startDate} — {activeFreeze.endDate}</span>
+                                            </div>
+                                            <div className="flex justify-between text-slate-400">
+                                                <span>New Extended Expiry:</span>
+                                                <span className="text-emerald-400 font-bold">{activeFreeze.newExpiryDate}</span>
+                                            </div>
+                                        </div>
+                                    ) : freezeHistory.length > 0 && (
+                                        <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 text-xs text-slate-400 mt-3">
+                                            <div className="flex items-center justify-between font-semibold text-slate-300 mb-1">
+                                                <span>Past Membership Freezes:</span>
+                                                <span className="text-cyan-400">{freezeHistory.length} Recorded</span>
+                                            </div>
+                                            <div className="text-[11px] text-slate-400">
+                                                Last freeze: {freezeHistory[0].startDate} to {freezeHistory[0].endDate} ({freezeHistory[0].totalDays} days extended)
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

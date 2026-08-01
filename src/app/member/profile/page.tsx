@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User, Mail, Phone, MapPin, Camera, Save, Target, Activity, CheckCircle2, Ruler, Weight, Dumbbell, UserCircle, Settings2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, Save, Target, Activity, CheckCircle2, Ruler, Weight, Dumbbell, UserCircle, Settings2, Snowflake, History, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { useMembershipFreeze } from '@/lib/membership-freeze-store';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const INITIAL_PROFILE = {
 
 export default function MemberProfilePage() {
     const [profile, setProfile] = useState(INITIAL_PROFILE);
+    const { activeFreeze, freezeHistory = [] } = useMembershipFreeze(1);
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = () => {
@@ -275,6 +277,71 @@ export default function MemberProfilePage() {
                                     </span>
                                 )}
                             </Button>
+                        </CardContent>
+                    </Card>
+
+                    {/* Membership Status & Freeze History Card */}
+                    <Card className="bg-slate-900/60 border-slate-800/60 shadow-2xl overflow-hidden">
+                        <CardHeader className="pb-3 border-b border-slate-800/60 bg-slate-900/40">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-base text-white flex items-center gap-2">
+                                    <Snowflake className="w-4 h-4 text-cyan-400" />
+                                    Membership & Freeze History
+                                </CardTitle>
+                                <Badge className={activeFreeze ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"}>
+                                    {activeFreeze ? 'Frozen' : 'Active'}
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-4 space-y-3 text-xs">
+                            {activeFreeze ? (
+                                <div className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
+                                    <div className="flex justify-between font-bold text-white">
+                                        <span>Current Freeze:</span>
+                                        <span className="text-cyan-300">{activeFreeze.totalDays} Days</span>
+                                    </div>
+                                    <div className="flex justify-between text-slate-300">
+                                        <span>Period:</span>
+                                        <span>{activeFreeze.startDate} — {activeFreeze.endDate}</span>
+                                    </div>
+                                    <div className="flex justify-between text-slate-300">
+                                        <span>Extended Expiry:</span>
+                                        <span className="text-emerald-400 font-semibold">{activeFreeze.newExpiryDate}</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-850 text-slate-400">
+                                    No active freeze. Your gym membership is currently active.
+                                </div>
+                            )}
+
+                            <div className="space-y-2 pt-2">
+                                <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
+                                    <History className="w-3.5 h-3.5 text-slate-400" />
+                                    <span>Past Freeze Records</span>
+                                </div>
+                                {freezeHistory.length === 0 ? (
+                                    <p className="text-slate-500 text-[11px] italic">No previous freeze history recorded.</p>
+                                ) : (
+                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                        {freezeHistory.map((rec) => (
+                                            <div key={rec.id} className="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800/80 flex items-center justify-between text-[11px]">
+                                                <div>
+                                                    <div className="font-bold text-white">{rec.startDate} to {rec.endDate}</div>
+                                                    <div className="text-slate-400">{rec.reason} · {rec.totalDays} Days</div>
+                                                </div>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                                    rec.status === 'Active' ? 'bg-cyan-500/20 text-cyan-300' :
+                                                    rec.status === 'Cancelled' ? 'bg-rose-500/20 text-rose-300' :
+                                                    'bg-slate-500/20 text-slate-300'
+                                                }`}>
+                                                    {rec.status}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

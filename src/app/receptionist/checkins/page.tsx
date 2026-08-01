@@ -447,6 +447,7 @@ export default function CheckInPanel() {
                                         <div className="grid grid-cols-2 gap-2">
                                             {members.slice(0, 6).map(m => {
                                                 const badgeColor = m.status === 'Active' ? 'border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10' :
+                                                    m.status === 'Frozen' ? 'border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10' :
                                                     m.status === 'Expired' ? 'border-rose-500/20 text-rose-400 hover:bg-rose-500/10' :
                                                     'border-amber-500/20 text-amber-400 hover:bg-amber-500/10';
 
@@ -906,6 +907,7 @@ export default function CheckInPanel() {
                                             <span className="text-xs font-bold text-white block leading-none truncate w-full text-left">{m.name}</span>
                                             <span className={`text-[9px] uppercase font-black block tracking-wider mt-1.5 ${
                                                 m.status === 'Active' && m.pendingPayments === 'None' ? 'text-emerald-400' :
+                                                m.status === 'Frozen' ? 'text-cyan-300' :
                                                 m.status === 'Expired' || m.pendingPayments === 'Overdue' ? 'text-rose-400' : 'text-amber-400'
                                             }`}>
                                                 {statusLabel}
@@ -949,7 +951,11 @@ export default function CheckInPanel() {
                                         {/* 1. Membership status check */}
                                         <div className="flex items-center justify-between text-xs p-2 rounded bg-slate-900/40 border border-slate-850">
                                             <span className="text-slate-400 font-medium">Membership Active:</span>
-                                            {currentValidation.member.status !== 'Expired' ? (
+                                            {currentValidation.member.status === 'Frozen' ? (
+                                                <span className="text-cyan-400 font-bold flex items-center gap-1">
+                                                    <X className="w-3.5 h-3.5" /> Frozen (Temporarily Suspended)
+                                                </span>
+                                            ) : currentValidation.member.status !== 'Expired' ? (
                                                 <span className="text-emerald-400 font-bold flex items-center gap-1">
                                                     <Check className="w-3.5 h-3.5" /> Yes (Expiry: {new Date(currentValidation.member.expiryDate).toLocaleDateString()})
                                                 </span>

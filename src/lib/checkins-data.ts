@@ -1,7 +1,7 @@
 'use client';
 
 export type MembershipPlan = 'Premium' | 'Standard' | 'Basic' | 'None';
-export type MemberStatus = 'Active' | 'Expiring Soon' | 'Expired' | 'Inactive';
+export type MemberStatus = 'Active' | 'Expiring Soon' | 'Expired' | 'Inactive' | 'Frozen';
 export type PaymentStatus = 'None' | 'Overdue' | 'Due in 3 Days';
 
 export interface GymMember {
@@ -340,6 +340,34 @@ export const validateCheckIn = (memberIdOrCode: string): CheckInValidation | nul
     if (!member) return null;
 
     // Validation rules
+    let isFrozen = member.status === 'Frozen';
+    if (!isFrozen && typeof window !== 'undefined') {
+        try {
+            const freezesRaw = localStorage.getItem('zenith_membership_freezes_v1');
+            if (freezesRaw) {
+                const freezes = JSON.parse(freezesRaw);
+                const today = new Date().toISOString().split('T')[0];
+                if (Array.isArray(freezes)) {
+                    const active = freezes.find(f =>
+                        f.status === 'Active' &&
+                        (f.memberEmail?.toLowerCase() === member.email.toLowerCase() || String(f.memberRollNo) === member.id.replace(/\D/g, '')) &&
+                        today >= f.startDate && today <= f.endDate
+                    );
+                    if (active) isFrozen = true;
+                }
+            }
+        } catch (e) {}
+    }
+
+    if (isFrozen) {
+        return {
+            member,
+            allowed: false,
+            status: 'Denied',
+            message: 'Access Denied: Membership Temporarily Frozen'
+        };
+    }
+
     if (member.status === 'Expired' || new Date(member.expiryDate) < new Date()) {
         return {
             member,

@@ -10,6 +10,7 @@ import { addTransaction, isDuplicateUpiId } from '@/lib/transactions-store';
 import { useGymMembers, addNewGymMember, GymMemberRecord } from '@/lib/gym-members-store';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import MemberProfileDrawer, { AdminMember } from '@/components/admin/MemberProfileDrawer';
 
 interface Transfer {
     id: string;
@@ -59,6 +60,23 @@ export default function MembersManagementPanel() {
 
     const [activeMenuRollNo, setActiveMenuRollNo] = useState<number | null>(null);
     const [editingMember, setEditingMember] = useState<GymMemberRecord | null>(null);
+    const [selectedProfileMember, setSelectedProfileMember] = useState<AdminMember | null>(null);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+    const handleOpenMemberProfile = (member: GymMemberRecord) => {
+        setSelectedProfileMember({
+            id: `MEM-100${member.rollNo}`,
+            name: member.name,
+            email: member.email,
+            phone: member.phone,
+            plan: member.plan,
+            status: member.status,
+            lastVisit: member.lastVisit,
+            joinDate: member.joinDate,
+            rollNo: member.rollNo,
+        });
+        setIsProfileOpen(true);
+    };
 
     const handleDeleteMember = (rollNo: number, name: string) => {
         if (window.confirm(`Are you sure you want to delete member "${name}" (Roll No. #${rollNo})? This will also remove them from the Attendance Directory.`)) {
@@ -478,6 +496,7 @@ export default function MembersManagementPanel() {
     const getStatusStyle = (status: string) => {
         switch (status) {
             case 'Active': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+            case 'Frozen': return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30 shadow-sm shadow-cyan-950/40';
             case 'Expiring Soon': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
             case 'Inactive': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
             case 'Pending': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
@@ -620,7 +639,7 @@ export default function MembersManagementPanel() {
                                     {filteredMembers.map((member, idx) => {
                                         const rollNo = (member as any).rollNo || idx + 1;
                                         return (
-                                        <tr key={rollNo} className="hover:bg-primary/5 transition-colors group">
+                                        <tr key={rollNo} onClick={() => handleOpenMemberProfile(member)} className="hover:bg-primary/5 transition-colors group cursor-pointer">
                                             <td className="p-4">
                                                 <span className="inline-flex items-center justify-center min-w-11 px-3 py-1.5 rounded-xl bg-primary/15 text-primary border border-primary/30 font-mono font-black text-sm shadow-[0_0_12px_hsl(var(--gold)/0.15)] group-hover:bg-primary group-hover:text-black transition-all">
                                                     #{String(rollNo).padStart(2, '0')}
@@ -669,7 +688,14 @@ export default function MembersManagementPanel() {
                                             </td>
                                             <td className="p-4 text-right relative">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <button className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-colors" title="Manage Subscription">
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleOpenMemberProfile(member);
+                                                        }}
+                                                        className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-colors" 
+                                                        title="Manage Membership & Freeze System"
+                                                    >
                                                         <CreditCard className="w-4 h-4" />
                                                     </button>
                                                     <div className="relative inline-block text-left">
@@ -684,7 +710,18 @@ export default function MembersManagementPanel() {
                                                             <MoreVertical className="w-4 h-4" />
                                                         </button>
                                                         {activeMenuRollNo === rollNo && (
-                                                            <div className="absolute right-0 mt-2 w-44 bg-slate-950 border border-white/20 rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                            <div className="absolute right-0 mt-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveMenuRollNo(null);
+                                                                        handleOpenMemberProfile(member);
+                                                                    }}
+                                                                    className="w-full px-3.5 py-2.5 text-left text-xs font-bold text-cyan-300 hover:bg-white/10 hover:text-white flex items-center gap-2.5 transition-colors"
+                                                                >
+                                                                    <User className="w-3.5 h-3.5 text-cyan-400" />
+                                                                    View Member Profile
+                                                                </button>
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
@@ -1739,6 +1776,12 @@ export default function MembersManagementPanel() {
                 </div>
             )}
             {/* ────────────────────────────────────────────────────────────────────── */}
+            {/* Interactive Admin Member Profile Drawer */}
+            <MemberProfileDrawer
+                member={selectedProfileMember}
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+            />
         </div>
     );
 }

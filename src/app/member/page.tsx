@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star, Flame, Calendar, Trophy, Zap, ArrowRight, Play, CheckCircle2, MessageSquare, Coffee, Lock } from "lucide-react";
+import { Star, Flame, Calendar, Trophy, Zap, ArrowRight, Play, CheckCircle2, MessageSquare, Coffee, Lock, Snowflake } from "lucide-react";
 import Link from "next/link";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useMembershipFreeze } from "@/lib/membership-freeze-store";
 
 const progressData = [
     { day: 'Mon', calories: 450, duration: 45 },
@@ -23,6 +24,7 @@ const upcomingClasses = [
 
 export default function MemberDashboard() {
     const [isWorkoutsLocked, setIsWorkoutsLocked] = useState(true);
+    const { activeFreeze } = useMembershipFreeze(1);
 
     useEffect(() => {
         const checkLock = () => {
@@ -55,6 +57,47 @@ export default function MemberDashboard() {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Prominent Membership Frozen Banner */}
+            {activeFreeze && (
+                <div className="bg-gradient-to-r from-cyan-950/70 via-slate-900/90 to-blue-950/70 border-2 border-cyan-500/40 p-6 md:p-8 rounded-3xl relative overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-500">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
+                    
+                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+                        <div className="space-y-2 max-w-2xl">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold uppercase tracking-wider">
+                                <Snowflake className="w-3.5 h-3.5" />
+                                <span>Membership Frozen</span>
+                            </div>
+                            <h2 className="text-2xl md:text-3xl font-heading font-black text-white">
+                                Your Gym Access is Temporarily Suspended
+                            </h2>
+                            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                                Your membership duration has been extended by exactly <strong className="text-cyan-300">{activeFreeze.totalDays} frozen days</strong>. While frozen, digital QR check-in and gym terminal access are temporarily suspended. All your workout history, progress data, and payment records remain preserved.
+                            </p>
+                        </div>
+
+                        <div className="w-full lg:w-auto bg-black/40 border border-cyan-500/30 p-5 rounded-2xl grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-4 shrink-0 text-xs">
+                            <div>
+                                <span className="text-slate-400 block font-medium">Freeze Period</span>
+                                <span className="font-bold text-white text-sm mt-0.5 block">{activeFreeze.startDate} — {activeFreeze.endDate}</span>
+                            </div>
+                            <div>
+                                <span className="text-slate-400 block font-medium">Resume Date</span>
+                                <span className="font-bold text-cyan-300 text-sm mt-0.5 block">{activeFreeze.endDate}</span>
+                            </div>
+                            <div>
+                                <span className="text-slate-400 block font-medium">Previous Expiry</span>
+                                <span className="font-bold text-slate-300 text-sm mt-0.5 block">{activeFreeze.oldExpiryDate}</span>
+                            </div>
+                            <div>
+                                <span className="text-slate-400 block font-medium">New Expiry</span>
+                                <span className="font-bold text-emerald-400 text-sm mt-0.5 block">{activeFreeze.newExpiryDate}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Welcome Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-gradient-to-r from-primary/10 via-transparent to-accent/5 p-6 md:p-8 rounded-3xl border border-primary/20 relative overflow-hidden">
                 {/* Glow Effects */}
@@ -75,7 +118,15 @@ export default function MemberDashboard() {
                 </div>
 
                 <div className="relative z-10 flex gap-4 w-full md:w-auto">
-                    {isWorkoutsLocked ? (
+                    {activeFreeze ? (
+                        <button
+                            disabled
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 font-semibold cursor-not-allowed whitespace-nowrap opacity-80"
+                        >
+                            <Snowflake className="w-4 h-4" />
+                            Access Frozen ({activeFreeze.totalDays} Days)
+                        </button>
+                    ) : isWorkoutsLocked ? (
                         <Link href="/member/plans" className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 text-slate-350 hover:text-white font-semibold transition-all hover:-translate-y-0.5 whitespace-nowrap">
                             <Lock className="w-4 h-4 text-slate-400" />
                             Unlock Workouts
