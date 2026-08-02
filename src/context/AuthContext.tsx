@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else if (selectedUser.role === 'CAFE_WORKER') {
             router.push('/cafe');
         } else if (selectedUser.role === 'STORE_MANAGER') {
-            router.push('/store-manager');
+            router.push('/store');
         } else {
             router.push('/member');
         }

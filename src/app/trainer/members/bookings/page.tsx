@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNotifications } from '@/context/NotificationContext';
 import { useAuth as useAuthContext } from '@/context/AuthContext';
@@ -112,6 +113,9 @@ export default function WellnessBookingsPage() {
     // PT Assignment management state
     const [trialRequests, setTrialRequests] = useState<Record<string, any>>({});
     const [ptStatus, setPtStatus] = useState<any>({});
+    const [rescheduleTrainerId, setRescheduleTrainerId] = useState<string | null>(null);
+    const [rescheduleDate, setRescheduleDate] = useState<string>('Tomorrow, 10:30 AM');
+    const [rescheduleTime, setRescheduleTime] = useState<string>('10:30 AM');
 
     const loadPTData = () => {
         try {
@@ -173,12 +177,69 @@ export default function WellnessBookingsPage() {
         addNotification({
             role: 'member',
             category: 'MEMBER',
-            priority: 'medium',
-            title: '❌ Trial Session Declined',
-            message: `Your trial session request was declined. You may request a trial with another trainer.`,
+            priority: 'high',
+            title: '❌ Apology: Trial Session Unavailable',
+            message: `We sincerely apologize, but your requested trial time with Coach is currently unavailable. Please check the live availability schedule and select another slot.`,
+            metadata: {
+                type: 'TRIAL_REJECTED',
+                trainerId
+            }
         });
 
-        toast.info('Trial session declined. Member notified.');
+        toast.info('Trial session declined. Member sent an apology & rebooking notification.');
+    };
+
+    const handleClearTrialRequest = (trainerId: string) => {
+        const saved = localStorage.getItem('zenith_trainer_trials');
+        if (!saved) return;
+        const trials = JSON.parse(saved);
+        delete trials[trainerId];
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(trials));
+        setTrialRequests({ ...trials });
+        window.dispatchEvent(new Event('storage'));
+        toast.success('Cleared from request list');
+    };
+
+    const handleRescheduleTrialRequest = () => {
+        if (!rescheduleTrainerId) return;
+        const saved = localStorage.getItem('zenith_trainer_trials');
+        if (!saved) return;
+        const trials = JSON.parse(saved);
+        if (!trials[rescheduleTrainerId]) return;
+
+        trials[rescheduleTrainerId].status = 'rescheduled';
+        trials[rescheduleTrainerId].date = rescheduleDate;
+        trials[rescheduleTrainerId].time = rescheduleTime;
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(trials));
+        setTrialRequests({ ...trials });
+        window.dispatchEvent(new Event('storage'));
+
+        const trainerNames: Record<string, string> = {
+            'marcus-johnson': 'Marcus Johnson',
+            'elena-rostova': 'Elena Rostova',
+            'marcus-vance': 'Marcus Vance',
+            'sarah-chen': 'Sarah Chen',
+            'michael-rivers': 'Michael Rivers',
+        };
+        const trainerName = trainerNames[rescheduleTrainerId] || rescheduleTrainerId;
+
+        addNotification({
+            role: 'member',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '🔄 Trial Session Rescheduled by Coach',
+            message: `Coach ${trainerName} has proposed to reschedule your trial session to ${rescheduleDate} at ${rescheduleTime}. Please accept or decline in your Trial Program panel.`,
+            metadata: {
+                type: 'TRIAL_RESCHEDULED',
+                trainerId: rescheduleTrainerId,
+                trainerName,
+                date: rescheduleDate,
+                time: rescheduleTime
+            }
+        });
+
+        toast.success(`Reschedule proposal sent to member for ${rescheduleDate} at ${rescheduleTime}!`);
+        setRescheduleTrainerId(null);
     };
 
     const handleApprovePTAssignment = () => {
@@ -355,7 +416,7 @@ export default function WellnessBookingsPage() {
                 <div className="space-y-6">
 
                     {/* PT Assignment Management Panel */}
-                    {(Object.values(trialRequests).some((t: any) => t.status === 'pending') || 
+                    {(Object.keys(trialRequests).length > 0 || 
                       (ptStatus?.paymentCompleted && !ptStatus?.trainerApproved) || 
                       (ptStatus?.status === 'pending') ||
                       (ptStatus?.status === 'approved' && !ptStatus?.paymentCompleted)) && (
@@ -405,10 +466,122 @@ export default function WellnessBookingsPage() {
                                                 </Button>
                                                 <Button
                                                     size="sm"
+                                                    variant="outline"
+                                                    onClick={() => {
+                                                        setRescheduleTrainerId(trainerId);
+                                                        setRescheduleDate(trial.date || 'Tomorrow, 10:30 AM');
+                                                        setRescheduleTime(trial.time || '10:30 AM');
+                                                    }}
+                                                    className="border border-amber-500/30 text-amber-300 hover:bg-amber-500/10 rounded-xl"
+                                                >
+                                                    <Clock className="w-4 h-4 mr-1.5" /> Reschedule
+                                                </Button>
+                                                <Button
+                                                    size="sm"
                                                     onClick={() => handleApproveTrialRequest(trainerId)}
                                                     className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl"
                                                 >
                                                     <CheckCircle2 className="w-4 h-4 mr-1.5" /> Approve Trial
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Rescheduled Trial Requests — Awaiting Member Response */}
+                                {Object.entries(trialRequests).filter(([, t]: [string, any]) => t.status === 'rescheduled').map(([trainerId, trial]: [string, any]) => {
+                                    const trainerNames: Record<string, string> = {
+                                        'marcus-johnson': 'Marcus Johnson',
+                                        'sarah-chen': 'Sarah Chen',
+                                        'michael-rivers': 'Michael Rivers',
+                                    };
+                                    return (
+                                        <div key={trainerId} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-purple-500/20 rounded-xl">
+                                                    <Clock className="w-5 h-5 text-purple-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-white">🔄 Rescheduled Trial — {trainerNames[trainerId] || trainerId}</p>
+                                                    <p className="text-xs text-purple-300 mt-0.5">
+                                                        Proposed Timing: {trial.date} at {trial.time} · Awaiting Member Acceptance / Rejection
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => {
+                                                        setRescheduleTrainerId(trainerId);
+                                                        setRescheduleDate(trial.date || 'Tomorrow, 10:30 AM');
+                                                        setRescheduleTime(trial.time || '10:30 AM');
+                                                    }}
+                                                    className="border border-purple-500/30 text-purple-300 hover:bg-purple-500/10 rounded-xl"
+                                                >
+                                                    Reschedule Again
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleApproveTrialRequest(trainerId)}
+                                                    className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl"
+                                                >
+                                                    <CheckCircle2 className="w-4 h-4 mr-1.5" /> Approve Directly
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Member Response — Accepted or Declined */}
+                                {Object.entries(trialRequests).filter(([, t]: [string, any]) => t.status === 'approved' || t.status === 'rejected').map(([trainerId, trial]: [string, any]) => {
+                                    const trainerNames: Record<string, string> = {
+                                        'marcus-johnson': 'Marcus Johnson',
+                                        'sarah-chen': 'Sarah Chen',
+                                        'michael-rivers': 'Michael Rivers',
+                                    };
+                                    const isApproved = trial.status === 'approved';
+                                    return (
+                                        <div key={trainerId} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl border ${isApproved ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-xl ${isApproved ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
+                                                    {isApproved ? (
+                                                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                                                    ) : (
+                                                        <XCircle className="w-5 h-5 text-rose-400" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-white">
+                                                        {isApproved ? `✅ Member Accepted Reschedule — ${trainerNames[trainerId] || trainerId}` : `❌ Member Declined Reschedule — ${trainerNames[trainerId] || trainerId}`}
+                                                    </p>
+                                                    <p className={`text-xs mt-0.5 ${isApproved ? 'text-emerald-300' : 'text-rose-300'}`}>
+                                                        {isApproved ? `Confirmed Session: ${trial.date} at ${trial.time} · Ready to train` : `Member declined proposed slot (${trial.date} at ${trial.time})`}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                                                {!isApproved && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            setRescheduleTrainerId(trainerId);
+                                                            setRescheduleDate(trial.date || 'Tomorrow, 10:30 AM');
+                                                            setRescheduleTime(trial.time || '10:30 AM');
+                                                        }}
+                                                        className="border border-amber-500/30 text-amber-300 hover:bg-amber-500/10 rounded-xl"
+                                                    >
+                                                        <Clock className="w-4 h-4 mr-1.5" /> Propose New Time
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => handleClearTrialRequest(trainerId)}
+                                                    className="border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl"
+                                                >
+                                                    Clear Notice
                                                 </Button>
                                             </div>
                                         </div>
@@ -589,6 +762,60 @@ export default function WellnessBookingsPage() {
                     </Card>
                 </div>
             </div>
+
+            {/* Reschedule Trial Request Modal */}
+            <Dialog open={!!rescheduleTrainerId} onOpenChange={(open) => !open && setRescheduleTrainerId(null)}>
+                <DialogContent className="bg-slate-950 border border-slate-800 text-white max-w-md rounded-3xl p-6">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-amber-400" />
+                            Propose New Trial Session Time
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-3">
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                            Select a new date and time slot to propose to the member. They will receive a notification to either accept or decline the updated schedule.
+                        </p>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                                New Date
+                            </label>
+                            <Input
+                                value={rescheduleDate}
+                                onChange={(e) => setRescheduleDate(e.target.value)}
+                                placeholder="e.g. Wed, Apr 23"
+                                className="bg-slate-900 border-slate-800 text-white rounded-xl"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                                New Time Slot
+                            </label>
+                            <Input
+                                value={rescheduleTime}
+                                onChange={(e) => setRescheduleTime(e.target.value)}
+                                placeholder="e.g. 02:30 PM"
+                                className="bg-slate-900 border-slate-800 text-white rounded-xl"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter className="flex gap-2 sm:justify-end">
+                        <Button
+                            variant="outline"
+                            onClick={() => setRescheduleTrainerId(null)}
+                            className="border-slate-800 text-slate-400 hover:bg-slate-900 rounded-xl"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleRescheduleTrialRequest}
+                            className="bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl"
+                        >
+                            Send Reschedule Proposal
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -116,15 +116,15 @@ function MembersPageContent() {
 
                 {/* Table */}
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
+                    <table className="w-full text-left border-collapse table-fixed min-w-[950px]">
                         <thead>
                             <tr className="border-b border-primary/10 text-xs uppercase tracking-wider font-semibold text-muted-foreground bg-black/5 dark:bg-white/5">
-                                <th className="px-6 py-4">Member Info</th>
-                                <th className="px-6 py-4">Contact</th>
-                                <th className="px-6 py-4">Membership</th>
-                                <th className="px-6 py-4">Last Visit</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
+                                <th className="px-6 py-4 w-[24%]">Member Info</th>
+                                <th className="px-6 py-4 w-[22%]">Contact</th>
+                                <th className="px-6 py-4 w-[16%]">Membership</th>
+                                <th className="px-6 py-4 w-[14%]">Last Visit</th>
+                                <th className="px-6 py-4 w-[12%]">Status</th>
+                                <th className="px-6 py-4 text-right w-[12%]">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm divide-y divide-primary/5">

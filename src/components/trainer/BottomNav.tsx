@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Dumbbell, Flame, Users, Bell, Menu } from 'lucide-react';
+import { LayoutDashboard, Dumbbell, Users, Bell, Menu } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
 
 interface BottomNavProps {
@@ -25,8 +25,8 @@ export default function TrainerBottomNav({ onMoreClick }: BottomNavProps = {}) {
 
     const items = [
         { label: 'Dashboard', href: '/trainer', icon: LayoutDashboard },
-        { label: 'Workouts', href: '/trainer/workout-plans', icon: Dumbbell },
-        { label: 'Diets', href: '/trainer/diet-plans', icon: Flame },
+        { label: 'Plans', href: '/trainer/plans', icon: Dumbbell },
+        { label: 'Members', href: '/trainer/members', icon: Users },
         { label: 'Alerts', href: '/trainer/member-alerts', icon: Bell, showBadge: true },
         { label: 'More', href: '#', icon: Menu, isMore: true },
     ];

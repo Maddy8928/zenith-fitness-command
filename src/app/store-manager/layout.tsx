@@ -272,7 +272,7 @@ function LayoutInner({
 
                 <div className="p-4 flex-1 space-y-1 mt-4">
                     {navItems.map((item) => {
-                        const isActive = pathname === item.path || (item.path !== '/store-manager' && pathname.startsWith(item.path));
+                        const isActive = pathname === item.path || (item.path === '/store-manager' && pathname === '/store') || (item.path !== '/store-manager' && pathname.startsWith(item.path));
                         return (
                             <button key={item.name} onClick={() => router.push(item.path)}
                                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative ${
@@ -371,7 +371,7 @@ function LayoutInner({
 
                         <div className="p-4 flex-1 space-y-1 mt-4 overflow-y-auto">
                             {navItems.map((item) => {
-                                const isActive = pathname === item.path || (item.path !== '/store-manager' && pathname.startsWith(item.path));
+                                const isActive = pathname === item.path || (item.path === '/store-manager' && pathname === '/store') || (item.path !== '/store-manager' && pathname.startsWith(item.path));
                                 return (
                                     <button key={item.name} onClick={() => { router.push(item.path); setIsMobileMenuOpen(false); }}
                                         className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative ${

@@ -698,15 +698,15 @@ export default function MembersManagementPanel() {
                     {/* Members Directory */}
                     <div className="glass-card rounded-2xl overflow-visible">
                         <div className="overflow-x-auto overflow-y-visible pb-24">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full text-left border-collapse table-fixed min-w-[950px]">
                                 <thead>
                                     <tr className="bg-black/20 border-b border-primary/10">
-                                        <th className="p-4 text-sm font-semibold text-muted-foreground">Member</th>
-                                        <th className="p-4 text-sm font-semibold text-muted-foreground">Contact</th>
-                                        <th className="p-4 text-sm font-semibold text-muted-foreground">Plan Details</th>
-                                        <th className="p-4 text-sm font-semibold text-muted-foreground">Status</th>
-                                        <th className="p-4 text-sm font-semibold text-muted-foreground">Last Visit</th>
-                                        <th className="p-4 text-sm font-semibold text-muted-foreground text-right">Actions</th>
+                                        <th className="p-4 text-sm font-semibold text-muted-foreground w-[22%]">Member</th>
+                                        <th className="p-4 text-sm font-semibold text-muted-foreground w-[22%]">Contact</th>
+                                        <th className="p-4 text-sm font-semibold text-muted-foreground w-[18%]">Plan Details</th>
+                                        <th className="p-4 text-sm font-semibold text-muted-foreground w-[12%]">Status</th>
+                                        <th className="p-4 text-sm font-semibold text-muted-foreground w-[14%]">Last Visit</th>
+                                        <th className="p-4 text-sm font-semibold text-muted-foreground text-right w-[12%]">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-primary/5">
@@ -757,10 +757,10 @@ export default function MembersManagementPanel() {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="p-4 text-sm text-slate-300">
+                                            <td className="p-4 text-sm text-slate-300 whitespace-nowrap">
                                                 {member.lastVisit}
                                             </td>
-                                            <td className="p-4 text-right">
+                                            <td className="p-4 text-right whitespace-nowrap">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {((member as any).paymentStatus === 'Partially Paid' && ((member as any).outstandingBalance || 0) > 0) && (
                                                         <button
@@ -1290,58 +1290,70 @@ export default function MembersManagementPanel() {
                 <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6">
                     <div className="bg-slate-900/95 border border-white/10 rounded-3xl w-full max-w-4xl h-[88vh] max-h-[850px] flex flex-col overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
 
-                        {/* Close */}
-                        <button
-                            type="button"
-                            onClick={resetNewMemberModal}
-                            className="absolute top-5 right-5 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors z-20"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-
                         {/* Header */}
-                        <div className="p-6 sm:px-8 sm:py-6 border-b border-white/10 bg-black/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 pr-16">
-                            <div className="flex items-center gap-3.5">
-                                <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_20px_hsl(var(--gold)/0.2)] shrink-0">
-                                    <Users className="w-6 h-6" />
+                        <div className="p-6 sm:px-8 sm:py-6 border-b border-white/10 bg-black/40 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0">
+                            <div className="flex items-center justify-between gap-3.5 w-full lg:w-auto">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_20px_hsl(var(--gold)/0.2)] shrink-0">
+                                        <Users className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl sm:text-2xl font-black text-white italic uppercase tracking-tight">
+                                            Register New Member
+                                        </h3>
+                                        <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+                                            Enroll a new client into the Nexus Gym system with smart access.
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl sm:text-2xl font-black text-white italic uppercase tracking-tight">
-                                        Register New Member
-                                    </h3>
-                                    <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                                        Enroll a new client into the Nexus Gym system with smart access.
-                                    </p>
-                                </div>
+                                {/* Close button on mobile/tablet */}
+                                <button
+                                    type="button"
+                                    onClick={resetNewMemberModal}
+                                    className="lg:hidden p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors shrink-0 ml-2"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
 
-                            {/* Step progress */}
-                            <div className="flex items-center gap-2 sm:gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl shrink-0">
-                                {[
-                                    { num: 1, label: 'Personal' },
-                                    { num: 2, label: 'Plan' },
-                                    { num: 3, label: 'Payment Setup' },
-                                ].map((s, i) => (
-                                    <React.Fragment key={s.num}>
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black border transition-all ${
-                                                newMemberStep >= s.num
-                                                    ? 'bg-primary border-primary text-black shadow-[0_0_12px_hsl(var(--gold)/0.4)]'
-                                                    : 'bg-white/5 border-white/10 text-slate-400'
-                                            }`}>{s.num}</div>
-                                            <span className={`text-xs font-bold uppercase tracking-wider hidden md:inline ${
-                                                newMemberStep >= s.num ? 'text-white font-black' : 'text-slate-500'
-                                            }`}>{s.label}</span>
-                                        </div>
-                                        {i < 2 && <div className={`w-6 sm:w-8 h-0.5 rounded transition-all ${ newMemberStep > s.num ? 'bg-primary' : 'bg-white/15' }`} />}
-                                    </React.Fragment>
-                                ))}
+                            <div className="flex items-center gap-3 justify-between lg:justify-end">
+                                {/* Step progress */}
+                                <div className="flex items-center gap-2 sm:gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl shrink-0 overflow-x-auto">
+                                    {[
+                                        { num: 1, label: 'Personal' },
+                                        { num: 2, label: 'Plan' },
+                                        { num: 3, label: 'Payment Setup' },
+                                    ].map((s, i) => (
+                                        <React.Fragment key={s.num}>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black border transition-all ${
+                                                    newMemberStep >= s.num
+                                                        ? 'bg-primary border-primary text-black shadow-[0_0_12px_hsl(var(--gold)/0.4)]'
+                                                        : 'bg-white/5 border-white/10 text-slate-400'
+                                                }`}>{s.num}</div>
+                                                <span className={`text-xs font-bold uppercase tracking-wider hidden md:inline ${
+                                                    newMemberStep >= s.num ? 'text-white font-black' : 'text-slate-500'
+                                                }`}>{s.label}</span>
+                                            </div>
+                                            {i < 2 && <div className={`w-6 sm:w-8 h-0.5 rounded transition-all ${ newMemberStep > s.num ? 'bg-primary' : 'bg-white/15' }`} />}
+                                        </React.Fragment>
+                                    ))}
+                                </div>
+
+                                {/* Close button on desktop */}
+                                <button
+                                    type="button"
+                                    onClick={resetNewMemberModal}
+                                    className="hidden lg:flex p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors shrink-0 ml-1"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
                         </div>
 
                         {/* Form Body */}
                         <form onSubmit={handleNewMemberSubmit} className="flex-1 flex flex-col overflow-hidden">
-                            <div className="p-6 sm:p-8 flex-1 overflow-y-auto space-y-8">
+                            <div className="p-6 sm:p-8 pb-32 flex-1 overflow-y-auto space-y-8">
 
                                 {/* STEP 1 — Personal Info */}
                                 {newMemberStep === 1 && (
@@ -1408,8 +1420,6 @@ export default function MembersManagementPanel() {
                                                 >
                                                     <option>Male</option>
                                                     <option>Female</option>
-                                                    <option>Other</option>
-                                                    <option>Prefer not to say</option>
                                                 </select>
                                             </div>
                                             <div className="space-y-2">

@@ -380,7 +380,7 @@ export default function TrainerDashboard() {
 
                 <div className="flex items-center gap-3">
                     <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg shadow-cyan-900/20" asChild>
-                        <Link href="/trainer/workout-plans/builder">
+                        <Link href="/trainer/plans/builder">
                             <Dumbbell className="w-4 h-4 mr-2" /> New Plan
                         </Link>
                     </Button>
@@ -459,15 +459,9 @@ export default function TrainerDashboard() {
                     {/* Quick Actions */}
                     <div className="flex flex-wrap gap-4">
                         <Button variant="outline" className="flex-1 bg-slate-900/50 border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white h-12" asChild>
-                            <Link href="/trainer/workout-plans">
+                            <Link href="/trainer/plans">
                                 <Dumbbell className="w-4 h-4 mr-2 text-blue-400" />
-                                Workout Plans
-                            </Link>
-                        </Button>
-                        <Button variant="outline" className="flex-1 bg-slate-900/50 border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white h-12" asChild>
-                            <Link href="/trainer/diet-plans">
-                                <Flame className="w-4 h-4 mr-2 text-emerald-400" />
-                                Diet Plans
+                                Workout & Diet Plans
                             </Link>
                         </Button>
                         <Button variant="outline" className="flex-1 bg-slate-900/50 border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white h-12" asChild>

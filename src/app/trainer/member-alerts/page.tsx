@@ -201,7 +201,10 @@ export default function MemberAlertsPage() {
     const loadUnifiedRequests = () => {
         // 1. Get trial requests from notifications
         const trialNotifs = trainerNotifications.filter(
-            n => n.metadata?.type === 'TRIAL_REQUEST'
+            n => n.metadata?.type === 'TRIAL_REQUEST' ||
+                 n.metadata?.type === 'TRIAL_RESCHEDULED' ||
+                 n.metadata?.type === 'TRIAL_APPROVED' ||
+                 n.metadata?.type === 'TRIAL_REJECTED'
         );
 
         const notifRequests: UnifiedTrialRequest[] = trialNotifs.map(n => {
@@ -280,8 +283,10 @@ export default function MemberAlertsPage() {
                     } else {
                         // Sync status from localStorage to notifications list if present
                         const matched = notifRequests.find(r => r.trainerId === trainerId);
-                        if (matched && matched.status !== data.status) {
-                            matched.status = data.status;
+                        if (matched) {
+                            if (matched.status !== data.status) matched.status = data.status;
+                            if (data.date) matched.date = data.date;
+                            if (data.time) matched.time = data.time;
                         }
                     }
                 });
@@ -908,15 +913,15 @@ export default function MemberAlertsPage() {
                                                                 </span>
                                                             ) : req.status === 'approved' ? (
                                                                 <span className="text-emerald-400 flex items-center gap-1 uppercase tracking-wider text-[10px] font-bold">
-                                                                    {req.isDirectPT ? '✓ Approved (Awaiting Payment)' : '✓ Trial Booked'}
+                                                                    {req.isDirectPT ? '✓ Approved (Awaiting Payment)' : '✓ Reschedule Accepted / Approved'}
                                                                 </span>
                                                             ) : req.status === 'rescheduled' ? (
                                                                 <span className="text-purple-400 flex items-center gap-1 uppercase tracking-wider text-[10px] font-bold">
-                                                                    ↺ Rescheduled proposed
+                                                                    ↺ Rescheduled (Awaiting Member Response)
                                                                 </span>
                                                             ) : (
                                                                 <span className="text-rose-450 flex items-center gap-1 uppercase tracking-wider text-[10px] font-extrabold shadow-[0_0_10px_rgba(239,68,68,0.15)] bg-rose-500/10 px-2 py-1 rounded-md border border-rose-500/20">
-                                                                    ✗ Request Declined
+                                                                    ✗ Declined by Member / Coach
                                                                 </span>
                                                             )}
                                                         </div>

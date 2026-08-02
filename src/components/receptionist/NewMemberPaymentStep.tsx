@@ -113,9 +113,11 @@ export default function NewMemberPaymentStep({
     const originalPrice = selectedPlan.price;
 
     // --- State: Discount Management ---
+    const [showDiscountOptions, setShowDiscountOptions] = useState<boolean>(false);
     const [discountPercentage, setDiscountPercentage] = useState<number>(0);
     const [discountInput, setDiscountInput] = useState<string>('0');
     const [selectedPromoOfferId, setSelectedPromoOfferId] = useState<string | null>(null);
+    const [isDiscountApplied, setIsDiscountApplied] = useState<boolean>(false);
 
     // --- State: Payment Method ---
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('one-time');
@@ -324,6 +326,7 @@ export default function NewMemberPaymentStep({
             setSelectedPromoOfferId(null);
             setDiscountPercentage(0);
             setDiscountInput('0');
+            setIsDiscountApplied(false);
         }
     }, [paymentMethod, selectedPromoOfferId]);
 
@@ -370,205 +373,341 @@ export default function NewMemberPaymentStep({
         setInstallment1AmountInput(amt.toString());
     };
 
+    const handleToggleDiscountOptions = () => {
+        const next = !showDiscountOptions;
+        setShowDiscountOptions(next);
+        if (!next) {
+            setDiscountPercentage(0);
+            setDiscountInput('0');
+            setSelectedPromoOfferId(null);
+            setIsDiscountApplied(false);
+        }
+    };
+
+    const handleApplyManualDiscount = () => {
+        if (discountPercentage <= 0) return;
+        setSelectedPromoOfferId(null); // Ensure no combo offer is active
+        setIsDiscountApplied(true);
+    };
+
+    const handleApplyPromoOffer = () => {
+        if (!selectedPromoOfferId) return;
+        setIsDiscountApplied(true);
+    };
+
+    const handleEditDiscount = () => {
+        setIsDiscountApplied(false);
+        setShowDiscountOptions(true);
+    };
+
     return (
         <div className="space-y-6 text-white animate-in fade-in duration-200">
-            {/* =========================================================================
-                1. DISCOUNT MANAGEMENT (At Top of Payment Step)
-               ========================================================================= */}
-            <div className="bg-slate-950/90 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-white/10 pb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_15px_hsl(var(--gold)/0.15)]">
-                            <Percent className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h4 className="text-base font-black uppercase tracking-wide text-white flex items-center gap-2">
-                                Discount Management
-                                {discountPercentage > 0 && (
-                                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        {discountPercentage}% Applied
-                                    </span>
-                                )}
+            {/* Discount & Promotional Offer Apply/Hide Section */}
+            {isDiscountApplied ? (
+                <div className="bg-slate-950/90 border border-emerald-500/30 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                            <h4 className="text-sm font-black uppercase tracking-wider text-white">
+                                Payment Summary
                             </h4>
-                            <p className="text-xs text-slate-400">Enter discount percentage before collecting payment</p>
                         </div>
-                    </div>
-
-                    {/* Discount % Input Box */}
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <div className="relative w-full sm:w-36">
-                            <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="1"
-                                value={discountInput}
-                                onChange={e => handleDiscountInputChange(e.target.value)}
-                                className="w-full bg-black/60 border border-white/15 focus:border-primary/60 rounded-xl py-2 pl-3 pr-8 text-sm font-mono font-bold text-white focus:outline-none transition-all shadow-inner"
-                                placeholder="0"
-                            />
-                            <span className="absolute right-3 top-2.5 text-xs font-black text-slate-400">%</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Quick Discount Preset Chips */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-2">Quick Presets:</span>
-                    {[0, 5, 10, 15, 20, 25].map(pct => (
                         <button
-                            key={pct}
                             type="button"
-                            onClick={() => handlePresetDiscount(pct)}
-                            className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                                discountPercentage === pct
-                                    ? 'bg-primary text-black shadow-[0_0_12px_hsl(var(--gold)/0.4)] scale-105'
-                                    : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 hover:border-white/15'
-                            }`}
+                            onClick={handleEditDiscount}
+                            className="text-[11px] text-slate-500 hover:text-slate-300 underline transition-colors cursor-pointer"
                         >
-                            {pct}%
+                            Edit
                         </button>
-                    ))}
-                </div>
-
-                {/* Real-time Calculation Display Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-black/40 p-4 rounded-2xl border border-white/5">
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Original Price</span>
-                        <p className="text-sm sm:text-base font-black font-mono text-slate-300">
-                            ₹{originalPrice.toLocaleString()}
-                        </p>
                     </div>
 
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Discount (%)</span>
-                        <p className="text-sm sm:text-base font-black font-mono text-cyan-400">
-                            {discountPercentage}%
-                        </p>
-                    </div>
-
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Discount Amount</span>
-                        <p className="text-sm sm:text-base font-black font-mono text-amber-400">
-                            -₹{discountAmount.toLocaleString()}
-                        </p>
-                    </div>
-
-                    <div className="space-y-1 bg-primary/10 -m-2 p-2 rounded-xl border border-primary/30 shadow-[0_0_15px_hsl(var(--gold)/0.15)]">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-primary">Final Payable</span>
-                        <p className="text-base sm:text-xl font-black font-mono text-primary">
-                            ₹{finalPayableAmount.toLocaleString()}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* =========================================================================
-                2. PROMOTIONAL MEMBERSHIP OFFERS (Below Manual Discount Section)
-               ========================================================================= */}
-            <div className="bg-slate-950/90 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-white/10 pb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
-                            <Sparkles className="w-5 h-5" />
+                    <div className="space-y-2 text-xs">
+                        <div className="flex justify-between items-center py-1 border-b border-white/5">
+                            <span className="text-slate-400">Original Membership Price</span>
+                            <span className="font-mono font-bold text-white">
+                                ₹{originalPrice.toLocaleString()}
+                            </span>
                         </div>
-                        <div>
-                            <h4 className="text-base font-black uppercase tracking-wide text-white flex items-center gap-2">
-                                Promotional Offers
-                                {selectedPromoOfferId && (
-                                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
-                                        {PROMOTIONAL_OFFERS.find(o => o.id === selectedPromoOfferId)?.name} Applied
-                                    </span>
-                                )}
-                            </h4>
-                            <p className="text-xs text-slate-400">Fixed membership promotional offers (One-Time Payments only)</p>
+                        <div className="flex justify-between items-center py-1 border-b border-white/5">
+                            <span className="text-slate-400">Discount / Offer Applied</span>
+                            <span className="font-mono font-bold text-emerald-400">
+                                -₹{discountAmount.toLocaleString()}
+                            </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1">
+                            <span className="text-slate-300 font-bold">Final Payable Amount</span>
+                            <span className="font-mono font-black text-primary text-base">
+                                ₹{finalPayableAmount.toLocaleString()}
+                            </span>
                         </div>
                     </div>
-
-                    <span className="text-[10px] font-medium text-slate-400">
-                        Only one promotional offer can be selected at a time
-                    </span>
                 </div>
-
-                {paymentMethod === 'installment' ? (
-                    <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start sm:items-center gap-3 text-amber-300 text-xs font-medium">
-                        <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
-                        <div>
-                            <p className="font-bold text-amber-300">Promotional offers are available only for one-time payments.</p>
-                            <p className="text-slate-400 text-[11px] mt-0.5">
-                                Fixed promotional discounts (Student, Couple, Corporate) cannot be combined with Installment Payment schedules. Please select One-Time Payment to unlock promotional offers.
-                            </p>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {PROMOTIONAL_OFFERS.map((offer) => {
-                            const isSelected = selectedPromoOfferId === offer.id;
-                            const offerDiscountAmt = Math.round((originalPrice * offer.discountPercent) / 100);
-                            const offerFinalPrice = Math.max(0, originalPrice - offerDiscountAmt);
-
-                            return (
-                                <div
-                                    key={offer.id}
-                                    onClick={() => handleSelectPromoOffer(offer)}
-                                    className={`cursor-pointer rounded-2xl p-4 border transition-all relative flex flex-col justify-between group ${
-                                        isSelected
-                                            ? 'bg-primary/15 border-primary shadow-[0_0_25px_hsl(var(--gold)/0.25)]'
-                                            : 'bg-slate-900/60 border-white/10 hover:border-white/25 hover:bg-white/[0.03]'
+            ) : (
+                <>
+                    {/* Apply Discount [OFF/ON] Toggle */}
+                    <div className="flex justify-end">
+                        <label
+                            htmlFor="apply-discount-toggle"
+                            className="inline-flex items-center gap-2 cursor-pointer select-none py-1 px-2.5 rounded-md text-xs text-slate-400 hover:text-slate-200 transition-colors"
+                        >
+                            <span>Apply Discount</span>
+                            <button
+                                id="apply-discount-toggle"
+                                type="button"
+                                role="switch"
+                                aria-label="Apply Discount"
+                                aria-checked={showDiscountOptions}
+                                onClick={handleToggleDiscountOptions}
+                                className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-full border border-transparent transition-colors focus:outline-none ${
+                                    showDiscountOptions ? 'bg-primary' : 'bg-white/10'
+                                }`}
+                            >
+                                <span
+                                    className={`pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-sm transform transition-transform ${
+                                        showDiscountOptions ? 'translate-x-3.5' : 'translate-x-0.5'
                                     }`}
-                                >
-                                    {isSelected && (
-                                        <div className="absolute top-3 right-3 text-primary">
-                                            <CheckCircle2 className="w-5 h-5" />
-                                        </div>
-                                    )}
+                                />
+                            </button>
+                        </label>
+                    </div>
 
-                                    <div>
-                                        <div className="flex items-center justify-between mb-3 pr-6">
-                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-                                                isSelected
-                                                    ? 'bg-primary text-black'
-                                                    : 'bg-white/5 text-primary group-hover:bg-primary/10'
-                                            }`}>
-                                                {offer.id === 'student' ? (
-                                                    <Tag className="w-5 h-5" />
-                                                ) : offer.id === 'couple' ? (
-                                                    <Users className="w-5 h-5" />
-                                                ) : (
-                                                    <ShieldCheck className="w-5 h-5" />
+                    {showDiscountOptions && (
+                        <>
+                            {/* =========================================================================
+                                1. DISCOUNT MANAGEMENT (At Top of Payment Step)
+                               ========================================================================= */}
+                            <div className="bg-slate-950/90 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-white/10 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_15px_hsl(var(--gold)/0.15)]">
+                                            <Percent className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-base font-black uppercase tracking-wide text-white flex items-center gap-2">
+                                                Discount Management
+                                                {discountPercentage > 0 && (
+                                                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                        {discountPercentage}% Applied
+                                                    </span>
                                                 )}
-                                            </div>
-                                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
-                                                isSelected
-                                                    ? 'bg-primary text-black border-primary'
-                                                    : 'bg-white/5 text-primary border-primary/30'
-                                            }`}>
-                                                {offer.badge}
-                                            </span>
+                                            </h4>
+                                            <p className="text-xs text-slate-400">Enter discount percentage before collecting payment</p>
                                         </div>
-
-                                        <h5 className="text-sm font-black text-white">{offer.name}</h5>
-                                        <p className="text-[11px] text-slate-400 mt-1 leading-snug">{offer.description}</p>
                                     </div>
 
-                                    <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-                                        <span className="text-[10px] font-semibold text-emerald-400">
-                                            Save ₹{offerDiscountAmt.toLocaleString()}
-                                        </span>
-                                        <span className="text-xs font-mono font-bold text-primary">
-                                            Final: ₹{offerFinalPrice.toLocaleString()}
-                                        </span>
+                                    {/* Discount % Input Box */}
+                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                        <div className="relative w-full sm:w-36">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="1"
+                                                value={discountInput}
+                                                onChange={e => handleDiscountInputChange(e.target.value)}
+                                                className="w-full bg-black/60 border border-white/15 focus:border-primary/60 rounded-xl py-2 pl-3 pr-8 text-sm font-mono font-bold text-white focus:outline-none transition-all shadow-inner"
+                                                placeholder="0"
+                                            />
+                                            <span className="absolute right-3 top-2.5 text-xs font-black text-slate-400">%</span>
+                                        </div>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
+
+                                {/* Quick Discount Preset Chips */}
+                                <div className="flex flex-wrap items-center gap-1.5 mb-5">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-2">Quick Presets:</span>
+                                    {[0, 5, 10, 15, 20, 25].map(pct => (
+                                        <button
+                                            key={pct}
+                                            type="button"
+                                            onClick={() => handlePresetDiscount(pct)}
+                                            className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                                                discountPercentage === pct
+                                                    ? 'bg-primary text-black shadow-[0_0_12px_hsl(var(--gold)/0.4)] scale-105'
+                                                    : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 hover:border-white/15'
+                                            }`}
+                                        >
+                                            {pct}%
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Real-time Calculation Display Grid */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-black/40 p-4 rounded-2xl border border-white/5">
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Original Price</span>
+                                        <p className="text-sm sm:text-base font-black font-mono text-slate-300">
+                                            ₹{originalPrice.toLocaleString()}
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Discount (%)</span>
+                                        <p className="text-sm sm:text-base font-black font-mono text-cyan-400">
+                                            {discountPercentage}%
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Discount Amount</span>
+                                        <p className="text-sm sm:text-base font-black font-mono text-amber-400">
+                                            -₹{discountAmount.toLocaleString()}
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-1 bg-primary/10 -m-2 p-2 rounded-xl border border-primary/30 shadow-[0_0_15px_hsl(var(--gold)/0.15)]">
+                                        <span className="text-[10px] font-black uppercase tracking-wider text-primary">Final Payable</span>
+                                        <p className="text-base sm:text-xl font-black font-mono text-primary">
+                                            ₹{finalPayableAmount.toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Apply Discount Button */}
+                                <div className="mt-4 flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={handleApplyManualDiscount}
+                                        disabled={discountPercentage <= 0}
+                                        className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+                                            discountPercentage > 0
+                                                ? 'bg-primary text-black hover:bg-primary/90 shadow-[0_0_15px_hsl(var(--gold)/0.3)] cursor-pointer'
+                                                : 'bg-white/10 text-slate-500 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        <Check className="w-4 h-4" /> Apply Discount
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* =========================================================================
+                                2. PROMOTIONAL MEMBERSHIP OFFERS (Below Manual Discount Section)
+                               ========================================================================= */}
+                            <div className="bg-slate-950/90 border border-white/10 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-white/10 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+                                            <Sparkles className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-base font-black uppercase tracking-wide text-white flex items-center gap-2">
+                                                Promotional Offers
+                                                {selectedPromoOfferId && (
+                                                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                                                        {PROMOTIONAL_OFFERS.find(o => o.id === selectedPromoOfferId)?.name} Applied
+                                                    </span>
+                                                )}
+                                            </h4>
+                                            <p className="text-xs text-slate-400">Fixed membership promotional offers (One-Time Payments only)</p>
+                                        </div>
+                                    </div>
+
+                                    <span className="text-[10px] font-medium text-slate-400">
+                                        Only one promotional offer can be selected at a time
+                                    </span>
+                                </div>
+
+                                {paymentMethod === 'installment' ? (
+                                    <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start sm:items-center gap-3 text-amber-300 text-xs font-medium">
+                                        <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+                                        <div>
+                                            <p className="font-bold text-amber-300">Promotional offers are available only for one-time payments.</p>
+                                            <p className="text-slate-400 text-[11px] mt-0.5">
+                                                Fixed promotional discounts (Student, Couple, Corporate) cannot be combined with Installment Payment schedules. Please select One-Time Payment to unlock promotional offers.
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        {PROMOTIONAL_OFFERS.map((offer) => {
+                                            const isSelected = selectedPromoOfferId === offer.id;
+                                            const offerDiscountAmt = Math.round((originalPrice * offer.discountPercent) / 100);
+                                            const offerFinalPrice = Math.max(0, originalPrice - offerDiscountAmt);
+
+                                            return (
+                                                <div
+                                                    key={offer.id}
+                                                    onClick={() => handleSelectPromoOffer(offer)}
+                                                    className={`cursor-pointer rounded-2xl p-4 border transition-all relative flex flex-col justify-between group ${
+                                                        isSelected
+                                                            ? 'bg-primary/15 border-primary shadow-[0_0_25px_hsl(var(--gold)/0.25)]'
+                                                            : 'bg-slate-900/60 border-white/10 hover:border-white/25 hover:bg-white/[0.03]'
+                                                    }`}
+                                                >
+                                                    {isSelected && (
+                                                        <div className="absolute top-3 right-3 text-primary">
+                                                            <CheckCircle2 className="w-5 h-5" />
+                                                        </div>
+                                                    )}
+
+                                                    <div>
+                                                        <div className="flex items-center justify-between mb-3 pr-6">
+                                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                                                                isSelected
+                                                                    ? 'bg-primary text-black'
+                                                                    : 'bg-white/5 text-primary group-hover:bg-primary/10'
+                                                            }`}>
+                                                                {offer.id === 'student' ? (
+                                                                    <Tag className="w-5 h-5" />
+                                                                ) : offer.id === 'couple' ? (
+                                                                    <Users className="w-5 h-5" />
+                                                                ) : (
+                                                                    <ShieldCheck className="w-5 h-5" />
+                                                                )}
+                                                            </div>
+                                                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                                                                isSelected
+                                                                    ? 'bg-primary text-black border-primary'
+                                                                    : 'bg-white/5 text-primary border-primary/30'
+                                                            }`}>
+                                                                {offer.badge}
+                                                            </span>
+                                                        </div>
+
+                                                        <h5 className="text-sm font-black text-white">{offer.name}</h5>
+                                                        <p className="text-[11px] text-slate-400 mt-1 leading-snug">{offer.description}</p>
+                                                    </div>
+
+                                                    <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+                                                        <span className="text-[10px] font-semibold text-emerald-400">
+                                                            Save ₹{offerDiscountAmt.toLocaleString()}
+                                                        </span>
+                                                        <span className="text-xs font-mono font-bold text-primary">
+                                                            Final: ₹{offerFinalPrice.toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Apply Offer Button */}
+                                {paymentMethod !== 'installment' && (
+                                    <div className="mt-5 flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={handleApplyPromoOffer}
+                                            disabled={!selectedPromoOfferId}
+                                            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+                                                selectedPromoOfferId
+                                                    ? 'bg-primary text-black hover:bg-primary/90 shadow-[0_0_15px_hsl(var(--gold)/0.3)] cursor-pointer'
+                                                    : 'bg-white/10 text-slate-500 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            <Check className="w-4 h-4" /> Apply Offer
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </>
+            )}
 
             {/* =========================================================================
                 3. PAYMENT METHOD SELECTION (Below Promotional Offers Section)

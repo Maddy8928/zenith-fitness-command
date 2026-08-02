@@ -29,6 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNotifications } from '@/context/NotificationContext';
+import { toast } from 'sonner';
 
 // ── Trainer name lookup ────────────────────────────────────────────────────
 const TRAINER_NAMES: Record<string, string> = {
@@ -111,13 +112,13 @@ function getNotifBg(type: string) {
 }
 
 export default function AlertsPage() {
-    const { notifications: allNotifs, markAsRead, removeNotification, markAllAsRead } = useNotifications();
+    const { notifications: allNotifs, addNotification, markAsRead, removeNotification, markAllAsRead } = useNotifications();
 
     const [activeTab, setActiveTab] = useState<'all' | 'trials' | 'notifications'>('all');
     const [trialBookings, setTrialBookings] = useState<Record<string, any>>({});
     const [ptStatus, setPtStatus] = useState<any>({});
     const [deletedMockIds, setDeletedMockIds] = useState<string[]>([]);
-    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rescheduled' | 'rejected'>('all');
 
     const loadData = () => {
         try {
@@ -146,10 +147,11 @@ export default function AlertsPage() {
             read: n.isRead,
             actionNeeded: !!n.actionUrl,
             isContext: true,
+            metadata: n.metadata,
         }));
 
     const mockFiltered = MOCK_ALERTS.filter(n => !deletedMockIds.includes(n.id)).map(n => ({
-        ...n, isContext: false,
+        ...n, isContext: false, metadata: undefined as any,
     }));
 
     const allNotifications = [...contextNotifs, ...mockFiltered];
@@ -160,7 +162,7 @@ export default function AlertsPage() {
         trainerName: TRAINER_NAMES[trainerId] || trainerId,
         date: t.date,
         time: t.time,
-        status: t.status as 'pending' | 'approved' | 'rejected',
+        status: (t.status || 'pending') as string,
     }));
 
     const pendingTrials = trialEntries.filter(t => t.status === 'pending');
@@ -184,11 +186,128 @@ export default function AlertsPage() {
         }
     };
 
+    const handleAcceptReschedule = (trainerId: string, trainerName: string) => {
+        let trialsMap: Record<string, any> = { ...trialBookings };
+        try {
+            const saved = localStorage.getItem('zenith_trainer_trials');
+            if (saved) {
+                trialsMap = { ...JSON.parse(saved), ...trialsMap };
+            }
+        } catch (e) {}
+
+        const current = trialsMap[trainerId] || { date: 'Tomorrow', time: '10:30 AM' };
+        const updated = {
+            ...trialsMap,
+            [trainerId]: {
+                ...current,
+                status: 'approved'
+            }
+        };
+        setTrialBookings(updated);
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '✅ Rescheduled Trial Accepted by Member!',
+            message: `Alex Johnson has accepted your rescheduled trial session timing (${current.date} at ${current.time}).`,
+            metadata: {
+                type: 'TRIAL_APPROVED',
+                trainerId,
+                trainerName,
+                memberName: 'Alex Johnson',
+                date: current.date,
+                time: current.time,
+                status: 'approved',
+                actionResponse: 'Accepted by Member'
+            }
+        });
+
+        try {
+            const savedAudit = localStorage.getItem('zenith_trial_audit_trail');
+            const auditLogs = savedAudit ? JSON.parse(savedAudit) : [];
+            auditLogs.unshift({
+                id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                requestId: trainerId,
+                action: 'Reschedule Accepted',
+                memberName: 'Alex Johnson',
+                membershipId: 'NX-2026-9041',
+                trainerName,
+                timestamp: new Date().toISOString(),
+                details: `Member accepted rescheduled trial timing (${current.date} at ${current.time}).`
+            });
+            localStorage.setItem('zenith_trial_audit_trail', JSON.stringify(auditLogs));
+        } catch (e) {}
+
+        toast.success(`Rescheduled time with ${trainerName} accepted! Trainer notified.`);
+    };
+
+    const handleDeclineReschedule = (trainerId: string, trainerName: string) => {
+        let trialsMap: Record<string, any> = { ...trialBookings };
+        try {
+            const saved = localStorage.getItem('zenith_trainer_trials');
+            if (saved) {
+                trialsMap = { ...JSON.parse(saved), ...trialsMap };
+            }
+        } catch (e) {}
+
+        const current = trialsMap[trainerId] || { date: 'Tomorrow', time: '10:30 AM' };
+        const updated = {
+            ...trialsMap,
+            [trainerId]: {
+                ...current,
+                status: 'rejected'
+            }
+        };
+        setTrialBookings(updated);
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '❌ Rescheduled Trial Declined by Member',
+            message: `Alex Johnson declined the rescheduled timing (${current.date} at ${current.time}) due to unavailability.`,
+            metadata: {
+                type: 'TRIAL_REJECTED',
+                trainerId,
+                trainerName,
+                memberName: 'Alex Johnson',
+                date: current.date,
+                time: current.time,
+                status: 'rejected',
+                actionResponse: 'Declined by Member'
+            }
+        });
+
+        try {
+            const savedAudit = localStorage.getItem('zenith_trial_audit_trail');
+            const auditLogs = savedAudit ? JSON.parse(savedAudit) : [];
+            auditLogs.unshift({
+                id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                requestId: trainerId,
+                action: 'Reschedule Declined',
+                memberName: 'Alex Johnson',
+                membershipId: 'NX-2026-9041',
+                trainerName,
+                timestamp: new Date().toISOString(),
+                details: `Member declined rescheduled trial timing (${current.date} at ${current.time}).`
+            });
+            localStorage.setItem('zenith_trial_audit_trail', JSON.stringify(auditLogs));
+        } catch (e) {}
+
+        toast.error(`Rescheduled time declined. Trainer notified.`);
+    };
+
     const getTrialStatusStyle = (status: string) => {
         switch (status) {
             case 'pending': return { badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-400', icon: Clock, label: 'Pending Approval' };
             case 'approved': return { badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-400', icon: CheckCircle2, label: 'Approved' };
             case 'rejected': return { badge: 'bg-rose-500/10 text-rose-400 border-rose-500/20', dot: 'bg-rose-400', icon: XCircle, label: 'Declined' };
+            case 'rescheduled': return { badge: 'bg-amber-500/10 text-amber-300 border-amber-500/20', dot: 'bg-amber-300', icon: Clock, label: 'Reschedule Proposed' };
             default: return { badge: 'bg-slate-500/10 text-slate-400 border-slate-500/20', dot: 'bg-slate-400', icon: Clock, label: 'Unknown' };
         }
     };
@@ -404,6 +523,37 @@ export default function AlertsPage() {
                                                     <span className="text-[10px] text-muted-foreground whitespace-nowrap">{notif.time}</span>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notif.message}</p>
+                                                {notif.metadata?.type === 'TRIAL_RESCHEDULED' && (
+                                                    <div className="mt-2.5 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                        {(!trialBookings[notif.metadata.trainerId] || trialBookings[notif.metadata.trainerId]?.status === 'rescheduled') ? (
+                                                            <>
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={() => handleAcceptReschedule(notif.metadata.trainerId, notif.metadata.trainerName || 'Coach')}
+                                                                    className="h-7 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg"
+                                                                >
+                                                                    Accept Reschedule
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => handleDeclineReschedule(notif.metadata.trainerId, notif.metadata.trainerName || 'Coach')}
+                                                                    className="h-7 px-3 text-xs border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold rounded-lg"
+                                                                >
+                                                                    Decline
+                                                                </Button>
+                                                            </>
+                                                        ) : trialBookings[notif.metadata.trainerId]?.status === 'approved' ? (
+                                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
+                                                                ✓ Reschedule Accepted by You
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20">
+                                                                ✗ Reschedule Declined by You
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -425,7 +575,7 @@ export default function AlertsPage() {
                     >
                         {/* Status filter pills */}
                         <div className="flex flex-wrap gap-2">
-                            {(['all', 'pending', 'approved', 'rejected'] as const).map(s => (
+                            {(['all', 'pending', 'approved', 'rescheduled', 'rejected'] as const).map(s => (
                                 <button
                                     key={s}
                                     onClick={() => setStatusFilter(s)}
@@ -433,6 +583,7 @@ export default function AlertsPage() {
                                         statusFilter === s
                                             ? s === 'pending' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
                                             : s === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                            : s === 'rescheduled' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                                             : s === 'rejected' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
                                             : 'bg-primary/20 text-primary dark:text-gold-glow border-primary/30'
                                             : 'bg-transparent text-muted-foreground border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
@@ -441,6 +592,7 @@ export default function AlertsPage() {
                                     {s === 'all' ? `All (${trialEntries.length})`
                                         : s === 'pending' ? `Pending (${pendingTrials.length})`
                                         : s === 'approved' ? `Approved (${approvedTrials.length})`
+                                        : s === 'rescheduled' ? `Rescheduled (${trialEntries.filter(t => t.status === 'rescheduled').length})`
                                         : `Declined (${rejectedTrials.length})`}
                                 </button>
                             ))}
@@ -507,7 +659,32 @@ export default function AlertsPage() {
                                                             This trial was declined. You may book with another trainer.
                                                         </p>
                                                     )}
+                                                    {trial.status === 'rescheduled' && (
+                                                        <p className="text-xs text-amber-300/90 mt-2 flex items-center gap-1">
+                                                            <Clock className="w-3 h-3 animate-pulse" />
+                                                            Coach proposed new timing: {trial.date} at {trial.time}. Please Accept or Decline.
+                                                        </p>
+                                                    )}
                                                 </div>
+                                                {trial.status === 'rescheduled' && (
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handleAcceptReschedule(trial.trainerId, trial.trainerName)}
+                                                            className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs"
+                                                        >
+                                                            Accept
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleDeclineReschedule(trial.trainerId, trial.trainerName)}
+                                                            className="border-rose-500/30 text-rose-400 hover:bg-rose-500/10 rounded-xl font-bold text-xs"
+                                                        >
+                                                            Decline
+                                                        </Button>
+                                                    </div>
+                                                )}
                                                 {trial.status === 'approved' && (
                                                     <Link href={`/member/billing?payTrial=true&trainerId=${trial.trainerId}`}>
                                                         <Button size="sm" className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-bold hover:brightness-110 shrink-0">
@@ -589,6 +766,37 @@ export default function AlertsPage() {
                                             <p className={`text-xs leading-relaxed ${!notif.read ? 'text-muted-foreground dark:text-gray-300' : 'text-muted-foreground/70'}`}>
                                                 {notif.message}
                                             </p>
+                                            {notif.metadata?.type === 'TRIAL_RESCHEDULED' && (
+                                                <div className="pt-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                    {(!trialBookings[notif.metadata.trainerId] || trialBookings[notif.metadata.trainerId]?.status === 'rescheduled') ? (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleAcceptReschedule(notif.metadata.trainerId, notif.metadata.trainerName || 'Coach')}
+                                                                className="h-7 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg"
+                                                            >
+                                                                Accept Reschedule
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleDeclineReschedule(notif.metadata.trainerId, notif.metadata.trainerName || 'Coach')}
+                                                                className="h-7 px-3 text-xs border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold rounded-lg"
+                                                            >
+                                                                Decline
+                                                            </Button>
+                                                        </>
+                                                    ) : trialBookings[notif.metadata.trainerId]?.status === 'approved' ? (
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
+                                                            ✓ Reschedule Accepted by You
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20">
+                                                            ✗ Reschedule Declined by You
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                             {notif.actionNeeded && (
                                                 <button className="text-xs font-semibold text-amber-700 dark:text-gold-glow hover:underline underline-offset-4 mt-1">
                                                     View Details

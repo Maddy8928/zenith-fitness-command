@@ -486,9 +486,25 @@ export default function MemberPlansPage() {
         };
     });
 
+    const TRAINER_TRIAL_SCHEDULES: Record<string, {
+        availableDays: number[]; // indices 0, 1, 2
+        availableSlots: string[];
+    }> = {
+        'sarah-chen': { availableDays: [0, 1], availableSlots: ['09:00 AM', '10:30 AM', '04:00 PM'] },
+        'marcus-vance': { availableDays: [1, 2], availableSlots: ['02:30 PM', '04:00 PM', '05:30 PM'] },
+        'elena-rostova': { availableDays: [0, 2], availableSlots: ['10:30 AM', '12:00 PM', '05:30 PM'] },
+    };
+
     const bookingTimeSlots = [
         '09:00 AM', '10:30 AM', '12:00 PM', '02:30 PM', '04:00 PM', '05:30 PM'
     ];
+
+    const openTrialModalForTrainer = (trainer: typeof TRAINERS[0]) => {
+        const sched = TRAINER_TRIAL_SCHEDULES[trainer.id] || { availableDays: [0, 1], availableSlots: ['09:00 AM', '02:30 PM', '05:30 PM'] };
+        setBookingDateIdx(sched.availableDays[0] !== undefined ? sched.availableDays[0] : 0);
+        setBookingTime(null);
+        setActiveBookingTrainer(trainer);
+    };
 
     const handleConfirmBooking = () => {
         if (!activeBookingTrainer || !bookingTime) return;
@@ -536,6 +552,68 @@ export default function MemberPlansPage() {
         });
 
         setActiveBookingTrainer(null);
+    };
+
+    const handleAcceptReschedule = (trainerId: string, trainerName: string) => {
+        const current = trialBookings[trainerId];
+        if (!current) return;
+        const updated = {
+            ...trialBookings,
+            [trainerId]: {
+                ...current,
+                date: current.date || current.proposedDate,
+                time: current.time || current.proposedTime,
+                status: 'approved'
+            }
+        };
+        setTrialBookings(updated);
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '✅ Rescheduled Trial Accepted!',
+            message: `${currentUser?.name || 'Alex'} has accepted the rescheduled trial time (${current.date || current.proposedDate} at ${current.time || current.proposedTime}) with you.`,
+            metadata: {
+                type: 'TRIAL_APPROVED',
+                trainerId,
+                trainerName,
+                date: current.date || current.proposedDate,
+                time: current.time || current.proposedTime
+            }
+        });
+        toast.success(`Rescheduled time with ${trainerName} accepted!`);
+    };
+
+    const handleDeclineReschedule = (trainerId: string, trainerName: string) => {
+        const current = trialBookings[trainerId];
+        if (!current) return;
+        const updated = {
+            ...trialBookings,
+            [trainerId]: {
+                ...current,
+                status: 'rejected'
+            }
+        };
+        setTrialBookings(updated);
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '❌ Rescheduled Trial Declined',
+            message: `${currentUser?.name || 'Alex'} declined the rescheduled timing (${current.date} at ${current.time}) due to unavailability.`,
+            metadata: {
+                type: 'TRIAL_REJECTED',
+                trainerId,
+                trainerName
+            }
+        });
+        toast.error(`Rescheduled time declined. You may book another slot anytime.`);
     };
 
     const handleCompleteTrialSession = (trainerId: string, trainerName: string) => {
@@ -954,8 +1032,20 @@ export default function MemberPlansPage() {
                                                     {/* Top Badges */}
                                                     <div className="absolute top-3 left-3 right-3 flex justify-between items-center">
                                                         {isTrialScheduled ? (
-                                                            <Badge className="bg-emerald-500/90 text-black font-black text-[10px] px-2.5 py-1 uppercase shadow-md">
-                                                                ✓ {trial.status === 'completed' ? 'Trial Completed' : `Scheduled: ${trial.date} (${trial.time})`}
+                                                            <Badge className={`${
+                                                                trial.status === 'rescheduled' || trial.status === 'rescheduled_by_trainer'
+                                                                    ? 'bg-amber-500/90 text-black'
+                                                                    : trial.status === 'rejected'
+                                                                    ? 'bg-rose-500/90 text-white'
+                                                                    : 'bg-emerald-500/90 text-black'
+                                                            } font-black text-[10px] px-2.5 py-1 uppercase shadow-md`}>
+                                                                {trial.status === 'completed'
+                                                                    ? '✓ Trial Completed'
+                                                                    : trial.status === 'rescheduled' || trial.status === 'rescheduled_by_trainer'
+                                                                    ? `🔄 Rescheduled: ${trial.date} (${trial.time})`
+                                                                    : trial.status === 'rejected'
+                                                                    ? '✕ Trial Declined'
+                                                                    : `✓ Scheduled: ${trial.date} (${trial.time})`}
                                                             </Badge>
                                                         ) : (
                                                             <Badge className="bg-slate-900/80 backdrop-blur-md text-indigo-400 border-indigo-500/30 text-[10px] px-2.5 py-1 font-bold">
@@ -1024,6 +1114,62 @@ export default function MemberPlansPage() {
 
                                             {/* Footer Actions */}
                                             <CardFooter className="p-5 pt-0 flex flex-col gap-2">
+                                                {/* RESCHEDULE PROPOSAL CARD */}
+                                                {isTrialScheduled && (trial.status === 'rescheduled' || trial.status === 'rescheduled_by_trainer') && (
+                                                    <div className="p-3.5 w-full bg-amber-500/15 border border-amber-500/30 rounded-2xl space-y-2 text-xs">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                                                                <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                                                                Coach Proposed New Time
+                                                            </span>
+                                                            <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30 text-[9px]">Action Needed</Badge>
+                                                        </div>
+                                                        <p className="text-slate-300">
+                                                            New Proposed Time: <strong className="text-white">{trial.date || trial.proposedDate} at {trial.time || trial.proposedTime}</strong>
+                                                        </p>
+                                                        <div className="flex gap-2 pt-0.5">
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleAcceptReschedule(trainer.id, trainer.name)}
+                                                                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs h-8 rounded-xl font-bold gap-1"
+                                                            >
+                                                                <CheckCircle2 className="w-3.5 h-3.5" /> Accept Time
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleDeclineReschedule(trainer.id, trainer.name)}
+                                                                className="flex-1 border-rose-500/40 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-xs h-8 rounded-xl font-bold gap-1"
+                                                            >
+                                                                <XCircle className="w-3.5 h-3.5" /> Decline
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* APOLOGY CARD FOR REJECTED TRIAL */}
+                                                {isTrialScheduled && trial.status === 'rejected' && (
+                                                    <div className="p-3.5 w-full bg-rose-500/15 border border-rose-500/30 rounded-2xl space-y-2 text-xs">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="font-bold text-rose-300 flex items-center gap-1.5">
+                                                                <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                                                                Trial Unavailable
+                                                            </span>
+                                                            <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/30 text-[9px]">Apology</Badge>
+                                                        </div>
+                                                        <p className="text-slate-300 leading-relaxed">
+                                                            We apologize, Coach {trainer.name} is unavailable for that slot.
+                                                        </p>
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => openTrialModalForTrainer(trainer)}
+                                                            className="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs h-8 rounded-xl font-bold border border-slate-700"
+                                                        >
+                                                            Book Another Slot
+                                                        </Button>
+                                                    </div>
+                                                )}
+
                                                 <div className="grid grid-cols-2 gap-2 w-full">
                                                     {/* View Profile Button */}
                                                     <Button
@@ -1041,19 +1187,19 @@ export default function MemberPlansPage() {
                                                         size="sm"
                                                         disabled={isTrainerFull && !isTrialScheduled}
                                                         onClick={() => {
-                                                            if (isTrialScheduled && trial.status !== 'completed') {
+                                                            if (isTrialScheduled && trial.status !== 'completed' && trial.status !== 'rejected') {
                                                                 handleCompleteTrialSession(trainer.id, trainer.name);
                                                             } else {
-                                                                setActiveBookingTrainer(trainer);
+                                                                openTrialModalForTrainer(trainer);
                                                             }
                                                         }}
                                                         className={`w-full font-bold text-xs gap-1.5 rounded-xl h-10 shadow-md ${
-                                                            isTrialScheduled
+                                                            isTrialScheduled && trial.status !== 'rejected'
                                                                 ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20'
                                                                 : 'bg-slate-800/80 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30'
                                                         }`}
                                                     >
-                                                        {isTrialScheduled ? (
+                                                        {isTrialScheduled && trial.status !== 'rejected' ? (
                                                             <>
                                                                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                                                                 {trial.status === 'completed' ? 'Trial Done' : 'Complete Trial'}
@@ -1385,57 +1531,90 @@ export default function MemberPlansPage() {
                                         alt={activeBookingTrainer.name}
                                         className="w-12 h-12 rounded-xl object-cover"
                                     />
-                                    <div>
+                                    <div className="flex-1 min-w-0">
                                         <h4 className="text-sm font-bold text-white">{activeBookingTrainer.name}</h4>
                                         <p className="text-xs text-indigo-400">{activeBookingTrainer.role}</p>
                                     </div>
+                                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] shrink-0">
+                                        Live Schedule
+                                    </Badge>
                                 </div>
 
                                 {/* Pick Date */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                                        1. Select Date
-                                    </label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                                            1. Select Available Date
+                                        </label>
+                                        <span className="text-[10px] text-slate-500">Coach's working days only</span>
+                                    </div>
                                     <div className="grid grid-cols-3 gap-2">
-                                        {bookingDates.map((dateObj, idx) => (
-                                            <button
-                                                key={idx}
-                                                type="button"
-                                                onClick={() => setBookingDateIdx(idx)}
-                                                className={`p-3 rounded-2xl border text-center transition-all ${
-                                                    bookingDateIdx === idx
-                                                        ? 'bg-indigo-950/80 border-indigo-500 text-white shadow-md'
-                                                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                                                }`}
-                                            >
-                                                <p className="text-[10px] font-bold uppercase tracking-wider">{dateObj.label}</p>
-                                                <p className="text-lg font-black">{dateObj.date}</p>
-                                                <p className="text-[10px] text-slate-500">{dateObj.month}</p>
-                                            </button>
-                                        ))}
+                                        {bookingDates.map((dateObj, idx) => {
+                                            const sched = TRAINER_TRIAL_SCHEDULES[activeBookingTrainer.id] || { availableDays: [0, 1], availableSlots: ['09:00 AM', '02:30 PM', '05:30 PM'] };
+                                            const isDayAvailable = sched.availableDays.includes(idx);
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    disabled={!isDayAvailable}
+                                                    onClick={() => isDayAvailable && setBookingDateIdx(idx)}
+                                                    className={`p-3 rounded-2xl border text-center transition-all ${
+                                                        !isDayAvailable
+                                                            ? 'bg-slate-950/60 border-slate-900 text-slate-600 opacity-40 cursor-not-allowed'
+                                                            : bookingDateIdx === idx
+                                                            ? 'bg-indigo-950/80 border-indigo-500 text-white shadow-md'
+                                                            : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                                                    }`}
+                                                >
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider">{dateObj.label}</p>
+                                                    <p className="text-lg font-black">{dateObj.date}</p>
+                                                    <p className="text-[10px] text-slate-500">{dateObj.month}</p>
+                                                    {isDayAvailable ? (
+                                                        <span className="block text-[9px] text-emerald-400 font-bold mt-1">● Available</span>
+                                                    ) : (
+                                                        <span className="block text-[9px] text-rose-500 font-bold mt-1">✕ Coach Busy</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
                                 {/* Pick Time Slot */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                                        2. Select Time Slot
-                                    </label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                                            2. Select Available Time Slot
+                                        </label>
+                                        <span className="text-[10px] text-slate-500">Open slots shown in green</span>
+                                    </div>
                                     <div className="grid grid-cols-3 gap-2">
-                                        {bookingTimeSlots.map((time, idx) => (
-                                            <button
-                                                key={idx}
-                                                type="button"
-                                                onClick={() => setBookingTime(time)}
-                                                className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
-                                                    bookingTime === time
-                                                        ? 'bg-indigo-600 border-indigo-400 text-white shadow-md'
-                                                        : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
-                                                }`}
-                                            >
-                                                {time}
-                                            </button>
-                                        ))}
+                                        {bookingTimeSlots.map((time, idx) => {
+                                            const sched = TRAINER_TRIAL_SCHEDULES[activeBookingTrainer.id] || { availableDays: [0, 1], availableSlots: ['09:00 AM', '02:30 PM', '05:30 PM'] };
+                                            const isSlotAvailable = sched.availableSlots.includes(time);
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    disabled={!isSlotAvailable}
+                                                    onClick={() => isSlotAvailable && setBookingTime(time)}
+                                                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
+                                                        !isSlotAvailable
+                                                            ? 'bg-slate-950/60 border-slate-900 text-slate-600 opacity-40 cursor-not-allowed'
+                                                            : bookingTime === time
+                                                            ? 'bg-indigo-600 border-indigo-400 text-white shadow-md'
+                                                            : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                                                    }`}
+                                                >
+                                                    <span>{time}</span>
+                                                    {isSlotAvailable ? (
+                                                        <span className="block text-[9px] text-emerald-400 font-normal">● Open</span>
+                                                    ) : (
+                                                        <span className="block text-[9px] text-rose-500/80 font-normal">Booked</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNotifications } from "@/context/NotificationContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
     Bell,
     Calendar,
@@ -88,9 +90,134 @@ const getNotificationBg = (type: string) => {
 };
 
 export default function NotificationsPage() {
-    const { notifications: allNotifications, markAsRead, removeNotification, markAllAsRead: markAllAsReadContext } = useNotifications();
+    const { notifications: allNotifications, markAsRead, removeNotification, markAllAsRead: markAllAsReadContext, addNotification } = useNotifications();
     const [deletedMockIds, setDeletedMockIds] = useState<string[]>([]);
     const [filter, setFilter] = useState("all");
+    const [trialBookings, setTrialBookings] = useState<Record<string, any>>({});
+
+    useEffect(() => {
+        const loadTrials = () => {
+            try {
+                const saved = localStorage.getItem('zenith_trainer_trials');
+                if (saved) setTrialBookings(JSON.parse(saved));
+            } catch (e) {}
+        };
+        loadTrials();
+        window.addEventListener('storage', loadTrials);
+        return () => window.removeEventListener('storage', loadTrials);
+    }, []);
+
+    const handleAcceptReschedule = (trainerId: string, trainerName: string) => {
+        let trialsMap: Record<string, any> = { ...trialBookings };
+        try {
+            const saved = localStorage.getItem('zenith_trainer_trials');
+            if (saved) trialsMap = { ...JSON.parse(saved), ...trialsMap };
+        } catch (e) {}
+
+        const current = trialsMap[trainerId] || { date: 'Tomorrow', time: '10:30 AM' };
+        const updated = {
+            ...trialsMap,
+            [trainerId]: {
+                ...current,
+                status: 'approved'
+            }
+        };
+        setTrialBookings(updated);
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '✅ Rescheduled Trial Accepted by Member!',
+            message: `Alex Johnson has accepted your rescheduled trial session timing (${current.date} at ${current.time}).`,
+            metadata: {
+                type: 'TRIAL_APPROVED',
+                trainerId,
+                trainerName,
+                memberName: 'Alex Johnson',
+                date: current.date,
+                time: current.time,
+                status: 'approved',
+                actionResponse: 'Accepted by Member'
+            }
+        });
+
+        try {
+            const savedAudit = localStorage.getItem('zenith_trial_audit_trail');
+            const auditLogs = savedAudit ? JSON.parse(savedAudit) : [];
+            auditLogs.unshift({
+                id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                requestId: trainerId,
+                action: 'Reschedule Accepted',
+                memberName: 'Alex Johnson',
+                membershipId: 'NX-2026-9041',
+                trainerName,
+                timestamp: new Date().toISOString(),
+                details: `Member accepted rescheduled trial timing (${current.date} at ${current.time}).`
+            });
+            localStorage.setItem('zenith_trial_audit_trail', JSON.stringify(auditLogs));
+        } catch (e) {}
+
+        toast.success(`Rescheduled time with ${trainerName} accepted! Trainer notified.`);
+    };
+
+    const handleDeclineReschedule = (trainerId: string, trainerName: string) => {
+        let trialsMap: Record<string, any> = { ...trialBookings };
+        try {
+            const saved = localStorage.getItem('zenith_trainer_trials');
+            if (saved) trialsMap = { ...JSON.parse(saved), ...trialsMap };
+        } catch (e) {}
+
+        const current = trialsMap[trainerId] || { date: 'Tomorrow', time: '10:30 AM' };
+        const updated = {
+            ...trialsMap,
+            [trainerId]: {
+                ...current,
+                status: 'rejected'
+            }
+        };
+        setTrialBookings(updated);
+        localStorage.setItem('zenith_trainer_trials', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+
+        addNotification({
+            role: 'trainer',
+            category: 'MEMBER',
+            priority: 'high',
+            title: '❌ Rescheduled Trial Declined by Member',
+            message: `Alex Johnson declined the rescheduled timing (${current.date} at ${current.time}) due to unavailability.`,
+            metadata: {
+                type: 'TRIAL_REJECTED',
+                trainerId,
+                trainerName,
+                memberName: 'Alex Johnson',
+                date: current.date,
+                time: current.time,
+                status: 'rejected',
+                actionResponse: 'Declined by Member'
+            }
+        });
+
+        try {
+            const savedAudit = localStorage.getItem('zenith_trial_audit_trail');
+            const auditLogs = savedAudit ? JSON.parse(savedAudit) : [];
+            auditLogs.unshift({
+                id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                requestId: trainerId,
+                action: 'Reschedule Declined',
+                memberName: 'Alex Johnson',
+                membershipId: 'NX-2026-9041',
+                trainerName,
+                timestamp: new Date().toISOString(),
+                details: `Member declined rescheduled trial timing (${current.date} at ${current.time}).`
+            });
+            localStorage.setItem('zenith_trial_audit_trail', JSON.stringify(auditLogs));
+        } catch (e) {}
+
+        toast.error(`Rescheduled time declined. Trainer notified.`);
+    };
 
     const formattedMockNotifications = initialNotifications.map(n => ({
         id: `mock_${n.id}`,
@@ -99,7 +226,8 @@ export default function NotificationsPage() {
         time: n.time,
         type: n.type,
         read: n.read,
-        actionNeeded: n.actionNeeded
+        actionNeeded: n.actionNeeded,
+        metadata: undefined as any
     }));
 
     const formattedContextNotifications = allNotifications
@@ -111,7 +239,8 @@ export default function NotificationsPage() {
             time: formatTimeDiff(n.timestamp),
             type: n.category.toLowerCase(),
             read: n.isRead,
-            actionNeeded: !!n.actionUrl
+            actionNeeded: !!n.actionUrl,
+            metadata: n.metadata
         }));
 
     // Simple helper function to format timestamps for display
@@ -262,7 +391,37 @@ export default function NotificationsPage() {
                                             <p className={`text-sm leading-relaxed ${!notif.read ? 'text-muted-foreground dark:text-gray-300' : 'text-muted-foreground/70'}`}>
                                                 {notif.message}
                                             </p>
-
+                                            {notif.metadata?.type === 'TRIAL_RESCHEDULED' && (
+                                                <div className="pt-3 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                    {(!trialBookings[notif.metadata.trainerId] || trialBookings[notif.metadata.trainerId]?.status === 'rescheduled') ? (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleAcceptReschedule(notif.metadata.trainerId, notif.metadata.trainerName || 'Coach')}
+                                                                className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg"
+                                                            >
+                                                                Accept Reschedule
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleDeclineReschedule(notif.metadata.trainerId, notif.metadata.trainerName || 'Coach')}
+                                                                className="h-8 px-3 text-xs border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold rounded-lg"
+                                                            >
+                                                                Decline
+                                                            </Button>
+                                                        </>
+                                                    ) : trialBookings[notif.metadata.trainerId]?.status === 'approved' ? (
+                                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-md border border-emerald-500/20">
+                                                            ✓ Reschedule Accepted by You
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-400 bg-rose-500/10 px-3 py-1 rounded-md border border-rose-500/20">
+                                                            ✗ Reschedule Declined by You
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                             {notif.actionNeeded && (
                                                 <div className="pt-3">
                                                     <button className="text-sm font-semibold text-amber-800 dark:text-gold-glow hover:underline underline-offset-4">

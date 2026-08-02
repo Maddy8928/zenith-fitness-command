@@ -127,6 +127,15 @@ export default function MemberTopNav({ onMenuTrigger }: TopNavProps = {}) {
                                                 <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                                                     {notification.message}
                                                 </p>
+                                                {notification.metadata?.type === 'TRIAL_RESCHEDULED' && (
+                                                    <div className="pt-1" onClick={(e) => e.stopPropagation()}>
+                                                        <Link href="/member/alerts">
+                                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 hover:bg-amber-500/30">
+                                                                Action Needed: Accept / Decline →
+                                                            </span>
+                                                        </Link>
+                                                    </div>
+                                                )}
                                                 <p className="text-[10px] text-muted-foreground/70 mt-2 font-medium">
                                                     {formatTime(notification.timestamp)}
                                                 </p>

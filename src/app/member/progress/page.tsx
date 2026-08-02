@@ -496,8 +496,6 @@ export default function MemberProgressPage() {
                                         >
                                             <option value="Male" className="bg-slate-900 text-white">Male</option>
                                             <option value="Female" className="bg-slate-900 text-white">Female</option>
-                                            <option value="Non-Binary" className="bg-slate-900 text-white">Non-Binary</option>
-                                            <option value="Prefer not to say" className="bg-slate-900 text-white">Prefer not to say</option>
                                         </select>
                                     </div>
                                     <p className="text-[11px] text-slate-500">Biological or preferred profile gender.</p>

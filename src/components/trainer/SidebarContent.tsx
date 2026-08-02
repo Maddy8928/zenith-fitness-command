@@ -35,8 +35,7 @@ import {
 
 const navItems = [
     { label: 'Dashboard', href: '/trainer', icon: LayoutDashboard },
-    { label: 'Workout Plans', href: '/trainer/workout-plans', icon: Dumbbell },
-    { label: 'Diet Plans', href: '/trainer/diet-plans', icon: Flame },
+    { label: 'Workout & Diet Plans', href: '/trainer/plans', icon: Dumbbell },
     { label: 'My Members', href: '/trainer/members', icon: Users },
     { label: 'Trainer Capacity', href: '/trainer/capacity', icon: UserCheck },
     { label: 'Member Alerts & Trial Bookings', href: '/trainer/member-alerts', icon: Bell },
