@@ -32,10 +32,6 @@ export default function AttendancePanel() {
         }
     }, [isAuthenticated, user, router, isLoading]);
 
-    if (isLoading || !isAuthenticated || (user?.role !== 'TRAINER' && user?.role !== 'ADMIN')) {
-        return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Attendance Data...</div>;
-    }
-
     const formatDate = (date: Date) => {
         return new Intl.DateTimeFormat('en-US', {
             weekday: 'long',
@@ -70,6 +66,10 @@ export default function AttendancePanel() {
         { id: 5, clientName: 'Michael Chen', time: '04:30 PM', duration: '60 min', type: 'Powerlifting', status: 'Rescheduled', avatar: 'MC' },
         { id: 6, clientName: 'Lisa Anderson', time: '06:00 PM', duration: '45 min', type: 'Flexibility & Yoga', status: 'Absent', avatar: 'LA' },
     ]);
+
+    if (isLoading || !isAuthenticated || (user?.role !== 'TRAINER' && user?.role !== 'ADMIN')) {
+        return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Attendance Data...</div>;
+    }
 
     const updateStatus = (id: number, newStatus: string) => {
         setSessions(sessions.map(s => s.id === id ? { ...s, status: newStatus } : s));

@@ -39,10 +39,6 @@ export default function MembersPanel() {
         }
     }, [isAuthenticated, user, router, isLoading]);
 
-    if (isLoading || !isAuthenticated || (user?.role !== 'TRAINER' && user?.role !== 'ADMIN')) {
-        return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Members...</div>;
-    }
-
     const defaultMembers = [
         {
             id: 1,
@@ -138,6 +134,10 @@ export default function MembersPanel() {
         window.addEventListener('storage', loadMembers);
         return () => window.removeEventListener('storage', loadMembers);
     }, []);
+
+    if (isLoading || !isAuthenticated || (user?.role !== 'TRAINER' && user?.role !== 'ADMIN')) {
+        return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Members...</div>;
+    }
 
     const clientProgress = [
         { id: 1, name: 'Alex Thompson', goal: 'Weight Loss', progress: 75, lastActive: '2 hours ago', avatar: 'AT' },
