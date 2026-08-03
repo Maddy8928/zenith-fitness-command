@@ -24,6 +24,7 @@ const QUICK_LOGIN_ROLES: QuickLoginRole[] = [
     { label: 'Reception', role: 'RECEPTIONIST', email: 'receptionist@nexusgym.com', redirect: '/receptionist' },
     { label: 'Cafe', role: 'CAFE_WORKER', email: 'cafe@nexusgym.com', redirect: '/cafe' },
     { label: 'Store', role: 'STORE_MANAGER', email: 'store@nexusgym.com', redirect: '/store' },
+    
 ];
 
 export default function LoginPage() {
