@@ -3,52 +3,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, Eye, EyeOff, Loader2, LogIn, ShieldCheck, User } from 'lucide-react';
-import { useAuth, UserRole } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
 
-interface QuickLoginRole {
-    label: string;
-    role: UserRole;
-    email: string;
-    redirect: string;
-}
-
-const QUICK_LOGIN_ROLES: QuickLoginRole[] = [
-    { label: 'Member', role: 'MEMBER', email: 'member@nexusgym.com', redirect: '/member' },
-    { label: 'Trainer', role: 'TRAINER', email: 'trainer@nexusgym.com', redirect: '/trainer' },
-    { label: 'Admin', role: 'ADMIN', email: 'admin@nexusgym.com', redirect: '/admin' },
-    { label: 'Reception', role: 'RECEPTIONIST', email: 'receptionist@nexusgym.com', redirect: '/receptionist' },
-    { label: 'Cafe', role: 'CAFE_WORKER', email: 'cafe@nexusgym.com', redirect: '/cafe' },
-    { label: 'Store', role: 'STORE_MANAGER', email: 'store@nexusgym.com', redirect: '/store' },
-    
-];
-
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [selectedRole, setSelectedRole] = useState<UserRole>('MEMBER');
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [error, setError] = useState('');
 
     const { login } = useAuth();
-
-    const handleQuickLogin = async (roleObj: QuickLoginRole) => {
-        setSelectedRole(roleObj.role);
-        setError('');
-        setIsLoggingIn(true);
-
-        try {
-            await login(roleObj.email, roleObj.role);
-        } catch (err) {
-            setError('Invalid credentials. Please try again.');
-            setIsLoggingIn(false);
-        }
-    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -62,8 +31,7 @@ export default function LoginPage() {
         setIsLoggingIn(true);
 
         try {
-            // Pass the selected role explicitly for the mock authentication demo
-            await login(email, selectedRole);
+            await login(email, 'MEMBER');
         } catch (err) {
             setError('Invalid credentials. Please try again.');
             setIsLoggingIn(false);
@@ -136,43 +104,6 @@ export default function LoginPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-6">
-                        {/* Quick Login Section */}
-                        <motion.div
-                            id="quick-login-section"
-                            variants={itemVariants}
-                            className="space-y-3 pb-6 border-b border-slate-800/80"
-                        >
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                                    QUICK LOGIN AS
-                                </span>
-                                <span className="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full font-medium">
-                                    DEMO
-                                </span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                {QUICK_LOGIN_ROLES.map((item) => {
-                                    const isSelected = selectedRole === item.role;
-                                    return (
-                                        <button
-                                            key={item.role}
-                                            type="button"
-                                            onClick={() => handleQuickLogin(item)}
-                                            disabled={isLoggingIn}
-                                            data-role={item.role}
-                                            className={`px-3 py-2 rounded-xl text-xs font-medium transition-all border flex items-center justify-center ${
-                                                isSelected
-                                                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/25'
-                                                    : 'bg-slate-950/50 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-900/50'
-                                            }`}
-                                        >
-                                            {item.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </motion.div>
-
                         <form onSubmit={handleLogin} className="space-y-4">
                             <AnimatePresence>
                                 {error && (
