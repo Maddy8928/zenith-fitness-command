@@ -35,14 +35,11 @@ import {
 
 const navItems = [
     { label: 'Dashboard', href: '/trainer', icon: LayoutDashboard },
-    { label: 'Workout & Diet Plans', href: '/trainer/plans', icon: Dumbbell },
     { label: 'My Members', href: '/trainer/members', icon: Users },
     { label: 'Trainer Capacity', href: '/trainer/capacity', icon: UserCheck },
     { label: 'Member Alerts & Trial Bookings', href: '/trainer/member-alerts', icon: Bell },
-    { label: 'Messages', href: '/trainer/messages', icon: MessageSquare },
     { label: 'Wellness Bookings', href: '/trainer/members/bookings', icon: Waves },
     { label: 'Attendance', href: '/trainer/attendance', icon: Clock },
-    { label: 'HYROX Management', href: '/trainer/hyrox', icon: Trophy },
     { label: 'Store (POS)', href: '/trainer/store', icon: ShoppingCart },
 ];
 
@@ -187,7 +184,7 @@ export default function SidebarContent({ onItemClick, variant = 'sidebar' }: Sid
                                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent dark:bg-neon-cyan rounded-r-md shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
                                     )}
                                     <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                                    <span className={`font-body text-sm tracking-widest font-bold flex-1 ${variant === 'bottom-sheet' ? 'uppercase' : 'normal-case'}`}>{item.label}</span>
+                                    <span className={`font-body text-sm tracking-widest font-bold flex-1 whitespace-nowrap truncate ${variant === 'bottom-sheet' ? 'uppercase' : 'normal-case'}`}>{item.label}</span>
                                     {item.label === 'Member Alerts & Trial Bookings' && unreadTrainerCount > 0 && (
                                         <span className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-lg shadow-cyan-900/20 animate-pulse relative z-10 shrink-0">
                                             {unreadTrainerCount}

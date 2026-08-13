@@ -85,7 +85,7 @@ export default function SidebarContent({ onItemClick, variant = 'sidebar' }: Sid
                                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary dark:bg-gold-glow rounded-r-md shadow-[0_0_15px_hsl(var(--gold))]" />
                                 )}
                                 <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                                <span className={`font-body text-sm tracking-widest font-bold flex-1 ${variant === 'bottom-sheet' ? 'uppercase' : 'normal-case'}`}>{item.label}</span>
+                                <span className={`font-body text-sm tracking-widest font-bold flex-1 whitespace-nowrap truncate ${variant === 'bottom-sheet' ? 'uppercase' : 'normal-case'}`}>{item.label}</span>
                             </Link>
                         );
                     })}

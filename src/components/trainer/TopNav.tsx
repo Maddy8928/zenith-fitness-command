@@ -97,7 +97,7 @@ export default function TrainerTopNav({ onMenuTrigger }: TopNavProps = {}) {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-auto p-1 text-xs text-cyan-600 dark:text-neon-cyan hover:bg-accent/10 dark:hover:bg-accent/10 border border-transparent"
+                                    className="h-auto p-1 text-xs !text-slate-300 hover:!text-white hover:bg-slate-800 border border-transparent"
                                     onClick={handleMarkAllRead}
                                 >
                                     <CheckCheck className="w-3.5 h-3.5 mr-1" /> Mark all read

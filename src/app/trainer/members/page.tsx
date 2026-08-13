@@ -12,6 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
     Search,
     Filter,
     UserPlus,
@@ -25,13 +31,15 @@ import {
     Dumbbell,
     Flame,
     Users,
-    Sparkles
+    Sparkles,
+    Trash2
 } from 'lucide-react';
 
 export default function MembersPanel() {
     const { user, isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
+    const [memberTypeTab, setMemberTypeTab] = useState('active');
 
     useEffect(() => {
         if (!isLoading && (!isAuthenticated || (user?.role !== 'TRAINER' && user?.role !== 'ADMIN'))) {
@@ -73,11 +81,11 @@ export default function MembersPanel() {
             name: 'David Garcia',
             email: 'david.g88@example.com',
             phone: '+1 (555) 456-7890',
-            status: 'Pending',
+            status: 'New',
             goal: 'Endurance',
             progress: 0,
-            workoutPlan: 'Marathon Prep',
-            dietPlan: 'High Carb Performance',
+            workoutPlan: '',
+            dietPlan: '',
             lastCheckIn: 'Never',
             joinDate: 'Feb 28, 2026',
             avatar: 'DG'
@@ -139,21 +147,124 @@ export default function MembersPanel() {
         return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Members...</div>;
     }
 
-    const clientProgress = [
-        { id: 1, name: 'Alex Thompson', goal: 'Weight Loss', progress: 75, lastActive: '2 hours ago', avatar: 'AT' },
-        { id: 2, name: 'Jessica Miller', goal: 'Muscle Gain', progress: 40, lastActive: '5 hours ago', avatar: 'JM' },
-        { id: 3, name: 'David Garcia', goal: 'Endurance', progress: 90, lastActive: 'Yesterday', avatar: 'DG' },
-        { id: 4, name: 'Lisa Anderson', goal: 'Flexibility', progress: 25, lastActive: '2 days ago', avatar: 'LA' },
-    ];
+
 
     const getStatusStyle = (status: string) => {
         switch (status) {
             case 'Active': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-            case 'Pending': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+            case 'Pending':
+            case 'New': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
             case 'Inactive': return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
             default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
         }
     };
+
+    // Auto-update status to Active if both plans are assigned
+    const processedMembers = members.map(m => {
+        const hasPlans = m.workoutPlan && m.workoutPlan !== 'Not Assigned' && m.workoutPlan !== '' && 
+                         m.dietPlan && m.dietPlan !== 'Not Assigned' && m.dietPlan !== '';
+        
+        if ((m.status === 'New' || m.status === 'Pending') && hasPlans) {
+            return { ...m, status: 'Active' };
+        }
+        return m;
+    });
+
+    const filteredMembers = processedMembers.filter((m) => {
+        const matchesSearch =
+            m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            m.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            m.goal.toLowerCase().includes(searchQuery.toLowerCase());
+            
+        if (!matchesSearch) return false;
+        
+        if (memberTypeTab === 'active') {
+            return m.status === 'Active';
+        } else if (memberTypeTab === 'new') {
+            return m.status === 'New' || m.status === 'Pending';
+        }
+        return true;
+    });
+
+    const activeProgressClients = processedMembers
+        .filter(m => m.status === 'Active')
+        .map(m => ({
+            id: m.id,
+            name: m.name,
+            goal: m.goal,
+            progress: m.progress || 0,
+            lastActive: m.lastCheckIn || 'N/A',
+            avatar: m.avatar
+        }));
+
+    const needsAttentionClients = processedMembers
+        .filter(m => (m.status === 'Active' && m.progress < 40) || m.status === 'Inactive')
+        .map(m => ({
+            id: m.id,
+            name: m.name,
+            goal: m.goal,
+            progress: m.progress || 0,
+            lastActive: m.lastCheckIn || 'N/A',
+            avatar: m.avatar
+        }));
+
+    const handleDeleteMember = (id: number) => {
+        const updatedMembers = members.filter(m => m.id !== id);
+        setMembers(updatedMembers);
+        
+        const saved = localStorage.getItem('zenith_trainer_members');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                const newParsed = parsed.filter((p: any) => p.id !== id);
+                localStorage.setItem('zenith_trainer_members', JSON.stringify(newParsed));
+            } catch (e) {}
+        }
+    };
+
+    const renderProgressList = (clients: any[]) => {
+        if (clients.length === 0) {
+            return (
+                <div className="text-center py-8 text-slate-500 text-xs font-semibold uppercase tracking-wider bg-slate-950/20 rounded-2xl border border-dashed border-slate-800/50">
+                    No clients found.
+                </div>
+            );
+        }
+        return (
+            <div className="space-y-6">
+                {clients.map((client) => (
+                    <div key={client.id} className="space-y-3 group">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10 border border-slate-700">
+                                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${client.name}&backgroundColor=1e293b&textColor=cbd5e1`} />
+                                    <AvatarFallback className="bg-slate-800 text-slate-300">{client.avatar}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h5 className="font-semibold text-slate-200 text-sm group-hover:text-blue-400 transition-colors">{client.name}</h5>
+                                    <p className="text-xs text-slate-500">{client.goal}</p>
+                                </div>
+                            </div>
+                            <Badge variant="secondary" className="bg-slate-800 text-slate-300 hover:bg-slate-700 font-normal text-xs">
+                                {client.progress}%
+                            </Badge>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Progress
+                                value={client.progress}
+                                className={`h-1.5 bg-slate-800 [&>div]:bg-gradient-to-r ${client.progress > 70 ? '[&>div]:from-emerald-500 [&>div]:to-emerald-400' :
+                                    client.progress > 40 ? '[&>div]:from-blue-500 [&>div]:to-cyan-500' :
+                                        '[&>div]:from-amber-500 [&>div]:to-amber-500'
+                                    }`}
+                            />
+                            <p className="text-[10px] text-slate-500 text-right">Last active: {client.lastActive}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8">
@@ -229,6 +340,14 @@ export default function MembersPanel() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Search & Members Grid */}
                     <div className="lg:col-span-2 space-y-6">
+                        {/* Member Type Tabs */}
+                        <Tabs defaultValue="active" value={memberTypeTab} onValueChange={setMemberTypeTab} className="w-full">
+                            <TabsList className="bg-slate-900/50 border border-slate-800 p-1 w-full sm:max-w-md grid grid-cols-2 rounded-xl h-12">
+                                <TabsTrigger value="active" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg h-full transition-all">Active Members</TabsTrigger>
+                                <TabsTrigger value="new" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg h-full transition-all">New Members</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+
                         {/* Search and Filters */}
                         <div className="flex flex-col sm:flex-row gap-4">
                             <div className="relative flex-1">
@@ -245,109 +364,93 @@ export default function MembersPanel() {
                                     <Filter className="w-5 h-5 mr-2" />
                                     Status
                                 </Button>
-                                <Tabs defaultValue="grid" className="h-12 border border-slate-800 rounded-xl bg-slate-900/50 p-1 flex">
+                                <Tabs defaultValue="list" className="h-12 border border-slate-800 rounded-xl bg-slate-900/50 p-1 flex">
                                     <TabsList className="bg-transparent gap-1 h-full w-full">
-                                        <TabsTrigger value="grid" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white h-full px-4 rounded-lg">Grid</TabsTrigger>
                                         <TabsTrigger value="list" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white h-full px-4 rounded-lg">List</TabsTrigger>
                                     </TabsList>
                                 </Tabs>
                             </div>
                         </div>
 
-                        {/* Members Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {members.map((member) => (
-                                <Card key={member.id} className="bg-slate-900/40 backdrop-blur-xl border-slate-800/60 hover:border-blue-500/30 transition-all duration-300 group flex flex-col h-full overflow-hidden">
-                                    <CardHeader className="pb-4 relative">
-                                        <div className="absolute top-0 right-0 p-4">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full">
-                                                <MoreVertical className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-
-                                        <div className="flex items-start gap-4">
-                                            <Avatar className="h-16 w-16 border-2 border-slate-800 group-hover:border-blue-500/50 transition-colors bg-slate-950">
-                                                <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${member.name}&backgroundColor=1e293b&textColor=cbd5e1`} />
-                                                <AvatarFallback className="bg-slate-800 text-lg">{member.avatar}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="pt-1">
-                                                <CardTitle className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">
-                                                    {member.name}
-                                                </CardTitle>
-                                                <div className="flex items-center gap-2 mt-1.5">
-                                                    <Badge variant="outline" className={`font-medium px-2 py-0 ${getStatusStyle(member.status)}`}>
-                                                        {member.status}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardHeader>
-
-                                    <CardContent className="flex-grow pb-4 space-y-5">
-                                        {/* Contact Info */}
-                                        <div className="space-y-2 text-sm text-slate-400">
-                                            <div className="flex items-center gap-2 hover:text-slate-300 transition-colors cursor-pointer w-fit">
-                                                <Mail className="w-4 h-4 text-slate-500" /> {member.email}
-                                            </div>
-                                            <div className="flex items-center gap-2 hover:text-slate-300 transition-colors cursor-pointer w-fit">
-                                                <Phone className="w-4 h-4 text-slate-500" /> {member.phone}
-                                            </div>
-                                        </div>
-
-                                        {/* Goals & Plans */}
-                                        <div className="p-4 rounded-xl bg-slate-950/50 border border-slate-800/50 space-y-4">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="text-slate-400 text-sm font-medium flex items-center">
-                                                    <Target className="w-4 h-4 mr-1.5 text-blue-400" /> Target Goal
-                                                </span>
-                                                <span className="font-semibold text-white text-sm">{member.goal}</span>
-                                            </div>
-
-                                            <div className="space-y-1.5">
-                                                <div className="flex justify-between text-xs mb-1">
-                                                    <span className="text-slate-500">Overall Progress</span>
-                                                    <span className={member.progress > 70 ? 'text-emerald-400 font-medium' : member.progress > 30 ? 'text-blue-400 font-medium' : 'text-amber-400 font-medium'}>{member.progress}%</span>
-                                                </div>
-                                                <Progress
-                                                    value={member.progress}
-                                                    className={`h-1.5 bg-slate-800 [&>div]:bg-gradient-to-r ${member.progress > 70 ? '[&>div]:from-emerald-500 [&>div]:to-emerald-400' :
-                                                        member.progress > 30 ? '[&>div]:from-blue-500 [&>div]:to-cyan-500' :
-                                                            '[&>div]:from-amber-500 [&>div]:to-amber-500'
-                                                        }`}
-                                                />
-                                            </div>
-
-                                            <div className="pt-3 border-t border-slate-800/50 space-y-2">
-                                                <div className="flex items-start gap-2 text-sm">
-                                                    <Dumbbell className="w-4 h-4 mt-0.5 text-slate-500 shrink-0" />
-                                                    <div>
-                                                        <p className="text-slate-500 text-xs">Workout Plan</p>
-                                                        <p className="text-slate-200 font-medium truncate">{member.workoutPlan}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-start gap-2 text-sm">
-                                                    <Flame className="w-4 h-4 mt-0.5 text-slate-500 shrink-0" />
-                                                    <div>
-                                                        <p className="text-slate-500 text-xs">Diet Plan</p>
-                                                        <p className="text-emerald-400 font-medium truncate">{member.dietPlan}</p>
+                        {/* Members List */}
+                        <div className="flex flex-col gap-3">
+                            {filteredMembers.map((member) => (
+                                <Card key={member.id} className="bg-slate-900/40 backdrop-blur-xl border-slate-800/60 hover:border-blue-500/30 transition-all duration-300 group overflow-hidden">
+                                    <CardContent className="p-0">
+                                        <div className="flex flex-wrap items-center gap-4 p-4 sm:p-5">
+                                            
+                                            {/* Member Info */}
+                                            <div className="flex items-center gap-4 w-[240px] shrink-0">
+                                                <Avatar className="h-12 w-12 border-2 border-slate-700 bg-slate-950 group-hover:border-blue-500/50 transition-colors">
+                                                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${member.name}&backgroundColor=1e293b&textColor=cbd5e1`} />
+                                                    <AvatarFallback className="bg-slate-800 text-sm">{member.avatar}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="font-bold text-slate-200 text-base truncate group-hover:text-blue-400 transition-colors">{member.name}</div>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <Badge variant="outline" className={`font-medium px-2 py-0 text-[10px] ${getStatusStyle(member.status)}`}>{member.status}</Badge>
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            {/* Goal & Progress */}
+                                            <div className="flex-1 min-w-[180px] xl:border-l border-slate-800/60 xl:pl-4">
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="font-medium text-slate-300 text-sm flex items-center truncate">
+                                                        <Target className="w-4 h-4 mr-1.5 text-blue-400 shrink-0" /> {member.goal}
+                                                    </span>
+                                                    <span className={`text-xs font-semibold ${member.progress > 70 ? 'text-emerald-400' : member.progress > 30 ? 'text-blue-400' : 'text-amber-400'}`}>
+                                                        {member.progress}%
+                                                    </span>
+                                                </div>
+                                                <Progress value={member.progress} className={`h-1.5 bg-slate-800 [&>div]:bg-gradient-to-r ${member.progress > 70 ? '[&>div]:from-emerald-500 [&>div]:to-emerald-400' : member.progress > 30 ? '[&>div]:from-blue-500 [&>div]:to-cyan-500' : '[&>div]:from-amber-500 [&>div]:to-amber-500'}`} />
+                                            </div>
+
+                                            {/* Plans */}
+                                            <div className="flex-1 min-w-[180px] xl:border-l border-slate-800/60 xl:pl-4 flex flex-col gap-1.5">
+                                                <div className="flex items-center gap-2 text-sm truncate">
+                                                    <Dumbbell className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                                    <span className={member.workoutPlan ? "text-slate-300 font-medium truncate text-sm" : "text-amber-400/70 italic text-sm"}>
+                                                        {member.workoutPlan || 'No Workout'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm truncate">
+                                                    <Flame className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                                    <span className={member.dietPlan ? "text-emerald-400 font-medium truncate text-sm" : "text-amber-400/70 italic text-sm"}>
+                                                        {member.dietPlan || 'No Diet Plan'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="flex items-center justify-end gap-2 w-full sm:w-auto shrink-0 xl:border-l border-slate-800/60 xl:pl-4">
+                                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-900/20 px-4" asChild>
+                                                    <Link href={`/trainer/members/${member.id}`}>
+                                                        Update Plan
+                                                    </Link>
+                                                </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg">
+                                                            <MoreVertical className="w-4 h-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-300 shadow-xl shadow-black/50">
+                                                        <DropdownMenuItem className="!text-slate-200 hover:!text-white hover:!bg-slate-800 focus:!bg-slate-800 cursor-pointer flex items-center" onClick={() => router.push('/trainer/messages')}>
+                                                            <Mail className="w-4 h-4 mr-2" /> Message
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="!text-slate-200 hover:!text-white hover:!bg-slate-800 focus:!bg-slate-800 cursor-pointer flex items-center" onClick={() => router.push('/trainer/members/bookings')}>
+                                                            <Calendar className="w-4 h-4 mr-2" /> View Bookings
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:text-red-300 focus:bg-red-500/10 cursor-pointer flex items-center" onClick={() => handleDeleteMember(member.id)}>
+                                                            <Trash2 className="w-4 h-4 mr-2" /> Delete Member
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+
                                         </div>
                                     </CardContent>
-
-                                    <CardFooter className="pt-4 border-t border-slate-800/50 bg-slate-900/20 flex gap-3">
-                                        <Button variant="outline" className="flex-1 bg-slate-900/50 border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800" asChild>
-                                            <Link href="/trainer/messages">
-                                                Message
-                                            </Link>
-                                        </Button>
-                                        <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-900/20" asChild>
-                                            <Link href="/trainer/members/bookings">
-                                                View Bookings
-                                            </Link>
-                                        </Button>
-                                    </CardFooter>
                                 </Card>
                             ))}
                         </div>
@@ -367,41 +470,11 @@ export default function MembersPanel() {
                                         <TabsTrigger value="needs_attention" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md transition-all text-xs">Needs Attention</TabsTrigger>
                                     </TabsList>
 
-                                    <TabsContent value="all" className="mt-6 space-y-6">
-                                        {clientProgress.map((client) => (
-                                            <div key={client.id} className="space-y-3 group">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-10 w-10 border border-slate-700">
-                                                            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${client.name}&backgroundColor=1e293b&textColor=cbd5e1`} />
-                                                            <AvatarFallback className="bg-slate-800 text-slate-300">{client.avatar}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <h5 className="font-semibold text-slate-200 text-sm group-hover:text-blue-400 transition-colors">{client.name}</h5>
-                                                            <p className="text-xs text-slate-500">{client.goal}</p>
-                                                        </div>
-                                                    </div>
-                                                    <Badge variant="secondary" className="bg-slate-800 text-slate-300 hover:bg-slate-700 font-normal text-xs">
-                                                        {client.progress}%
-                                                    </Badge>
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <Progress
-                                                        value={client.progress}
-                                                        className={`h-1.5 bg-slate-800 [&>div]:bg-gradient-to-r ${client.progress > 70 ? '[&>div]:from-emerald-500 [&>div]:to-emerald-400' :
-                                                            client.progress > 40 ? '[&>div]:from-blue-500 [&>div]:to-cyan-500' :
-                                                                '[&>div]:from-amber-500 [&>div]:to-amber-500'
-                                                            }`}
-                                                    />
-                                                    <p className="text-[10px] text-slate-500 text-right">Last active: {client.lastActive}</p>
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <TabsContent value="all" className="mt-6">
+                                        {renderProgressList(activeProgressClients)}
                                     </TabsContent>
                                     <TabsContent value="needs_attention" className="mt-6">
-                                        <div className="text-center py-8 text-slate-500 text-xs font-semibold uppercase tracking-wider bg-slate-950/20 rounded-2xl border border-dashed border-slate-800/50">
-                                            No clients need immediate attention.
-                                        </div>
+                                        {renderProgressList(needsAttentionClients)}
                                     </TabsContent>
                                 </Tabs>
                             </CardContent>

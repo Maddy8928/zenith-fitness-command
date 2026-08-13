@@ -948,7 +948,7 @@ export default function MemberAlertsPage() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={handleMarkAllAlertsRead}
-                                    className="text-xs text-blue-400 hover:bg-white/5 rounded-xl border border-transparent"
+                                    className="text-xs !text-slate-300 hover:!text-white hover:bg-slate-800 rounded-xl border border-transparent"
                                 >
                                     <CheckCheck className="w-4 h-4 mr-1.5" /> Mark all read
                                 </Button>
